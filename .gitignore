@@ -1,0 +1,11 @@
+# 개발 중 테스트용 산출물 (실제 기획 산출물은 워크스페이스 레포에 둠)
+sandbox/
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# 로그
+*.log

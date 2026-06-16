@@ -1,0 +1,27 @@
+{
+  "_README": "이 파일은 스키마/예시입니다. 실제 값은 워크스페이스 레포의 .planning/sources.json 에 작성하세요. 리서치 스킬(domain-study, tech-research)이 여기 등록된 위치를 자동 순회해 레거시 정책/도메인/기술 자료를 수집합니다.",
+  "notion": {
+    "_desc": "레거시 제품 정책·도메인 자료가 있는 노션 위치. DB ID 또는 페이지 ID(32자 hex 또는 URL).",
+    "policy_dbs": ["<notion-database-id>"],
+    "domain_pages": ["<notion-page-id>"],
+    "ticket_db": "<notion-tickets-database-id>"
+  },
+  "figma": {
+    "_desc": "레거시 화면(개선 프로젝트용) 및 레퍼런스(신규 프로젝트용) Figma 파일 키.",
+    "legacy_files": ["<figma-file-key>"],
+    "reference_files": ["<figma-file-key>"],
+    "storyboard_template_file": "<figma-file-key>"
+  },
+  "local": {
+    "_desc": "로컬 자료 디렉토리. './engagements' 를 넣으면 과거 산출물을 새 기획의 추가 레거시 소스로 재학습합니다.",
+    "doc_dirs": ["./engagements", "./docs/legacy"]
+  },
+  "web": {
+    "_desc": "기술 문서 웹 링크(공개 문서). 라이브러리 공식 문서는 Context7 MCP로도 보강됩니다.",
+    "tech_docs": ["https://example.com/tech-doc"]
+  },
+  "gdrive": {
+    "_desc": "Gemini 자동 회의록이 저장되는 구글 드라이브 폴더(Phase 2에서 사용).",
+    "meeting_notes_folder": "<gdrive-folder-id-or-name>"
+  }
+}

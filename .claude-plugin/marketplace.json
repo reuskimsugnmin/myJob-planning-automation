@@ -1,0 +1,21 @@
+{
+  "name": "myjob-planning",
+  "owner": {
+    "name": "Sungmin Kim",
+    "email": "smkim931206@gmail.com"
+  },
+  "metadata": {
+    "description": "PM/PD 제품 기획 워크플로우 자동화 플러그인 마켓플레이스",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "product-planning",
+      "source": "./plugins/product-planning",
+      "description": "노션 티켓 인입부터 레거시·기술 리서치, PRD/SDD 작성, Figma 스토리보드까지 PM/PD 기획 워크플로우를 자동화합니다.",
+      "version": "0.1.0",
+      "author": { "name": "Sungmin Kim" },
+      "keywords": ["pm", "pd", "product", "prd", "sdd", "planning", "notion", "figma"]
+    }
+  ]
+}
