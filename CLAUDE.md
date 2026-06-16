@@ -1,0 +1,134 @@
+# CLAUDE.md
+
+> 이 파일은 새 세션의 Claude가 이 레포의 맥락을 빠르게 잡기 위한 안내서다. 먼저 읽고 판단하라.
+
+## 1. 이 레포는 무엇인가
+
+PM/PD(제품 기획자/디자이너)의 **13단계 제품 기획 워크플로우를 자동화하는 Claude Code 플러그인**이다.
+이 레포는 **도구(플러그인) 전용**이다. 실제 기획 산출물(PRD/SDD 등)은 **여기에 만들지 않는다** — 별도의 워크스페이스 레포에 만든다(§4).
+
+- 목표: 반복 노동은 Claude가 주도하고, 전략적 결정만 사람이 내리는 구조를 만들어 GitHub 마켓플레이스로 팀과 공유·공동 개선한다.
+
+## 2. 현업 기획 워크플로우 (원본 13단계 · 자동화 대상)
+
+새 기획 업무가 들어올 때마다 반복되는 사용자의 실제 워크플로우. 각 단계가 어디서 정보를 얻는지(소스/도구)까지 포함한다. 이것이 우리가 자동화하려는 대상의 원본이다.
+
+1. 리더가 제품 개발 기획 업무를 배정 → **노션 티켓**으로 전달.
+2. 티켓 내 **이전 히스토리와 간략한 개발 요건** 파악 → 노션 티켓 내용.
+3. 관련 **레거시 제품 서비스 정책·도메인 스터디** → 노션·Figma·로컬파일 등 **scatter된 자료** 학습.
+4. 필요한 **요구사항과 기술 구현 Document** 파악 → 노션 또는 기술 문서(웹링크·로컬파일).
+5. **PRD 및 필요 시 SDD** 작성.
+6. 유관부서·개발조직과 **커뮤니케이션(미팅)** → 구글밋 Gemini **자동 회의록** 생성·관리.
+7. **상위 결정사항**(제품 핵심밸류/차별성/타겟/기술정책/주요 서비스정책/UX 배치)을 사람이 결정하며 PRD·SDD에 반영·고도화.
+8. Figma에 **스토리보드 초안 템플릿** 생성 → 사내 초안 템플릿으로 직접 생성.
+9. 스토리보드에 **서비스정책/플로우차트/데이터엔티티 흐름** 등 PRD→Figma로 작업.
+10. 기존 사내 **Figma 레거시 화면 학습** (신규 기능/화면이면 레퍼런스 학습으로 대체).
+11. 학습 내용 토대로 스토리보드에 **low-fi/mid-fi 디자인 아웃풋** 생성.
+12. 기획 내용+디자인 토대로 **상세 기획 디스크립션**을 스토리보드 내 작성.
+13. **high-fi 디자인 고도화** 및 확정된 UXUI에 맞게 디스크립션 고도화.
+
+## 3. 자동화 경계 (단계별 누가 무엇을 하나)
+
+🤖 = Claude 주도 · 🧑 = 사람 · 🤖+🧑 = Claude 보조 + 사람 결정/확정.
+
+| 단계 | 담당 | Claude 자동화 / 사람 역할 |
+| --- | --- | --- |
+| 1 티켓 인입 | 🤖 | Notion MCP로 티켓 fetch·파싱 |
+| 2 히스토리·요건 파악 | 🤖 | 티켓 본문·연결 문서 요약·구조화 |
+| 3 도메인 스터디 | 🤖 | 소스 레지스트리 기반 레거시 정책·도메인 수집·종합 |
+| 4 기술 리서치 | 🤖 | WebFetch/Context7/노션/로컬에서 요구사항·기술문서 정리 |
+| 5 PRD·SDD 작성 | 🤖 | 템플릿 기반 초안. 결정 필요 항목은 `⛳DECISION` placeholder |
+| 6 회의록 종합 | 🤖+🧑 | 미팅 참석은 사람. Gemini 회의록(Drive)→결정·액션아이템 추출→문서 반영은 Claude |
+| 7 상위 결정 | 🧑 (Claude 보조) | 사람이 결정. Claude는 옵션·트레이드오프·추천 *브리프*만 생성·반영 |
+| 8 스토리보드 템플릿 | 🧑 (Claude 보조) | 사내 템플릿 복제는 사람 주도, Claude 보조 가능 |
+| 9 PRD→스토리보드 | 🤖 | 서비스정책/플로우차트/ERD를 Figma MCP diagram+use_figma로 |
+| 10 레거시/레퍼런스 학습 | 🤖 | Figma get_design_context/screenshot로 화면·플로우 학습 |
+| 11 low/mid-fi 디자인 | 🤖 (적극) | low/mid-fi 화면 자동 생성. high-fi는 사람 |
+| 12 상세 디스크립션 | 🤖 | 스토리보드 내 기획 디스크립션 작성 |
+| 13 high-fi 고도화 | 🧑 (Claude 보조) | 디자인 취향·확정은 사람. 디스크립션 고도화만 Claude 보조 |
+
+**사람 전용**: 실제 미팅 참석, 7의 최종 전략 결정, 13의 디자인 취향·확정.
+**`⛳DECISION` 원칙**: 핵심밸류·차별성·타겟·기술/서비스 정책·UX 배치 등 전략 항목은 Claude가 단정하지 말고 마커로 표시하고 **옵션·트레이드오프·추천만** 제시한다.
+
+## 4. 핵심 아키텍처: 도구 ↔ 산출물 2-레포 분리 (가장 중요)
+
+- **이 레포 (도구)**: `myJob-planning-automation/`. 플러그인 본체는 `plugins/product-planning/`. 마켓플레이스 배포.
+- **워크스페이스 레포 (산출물)**: `../myjob-planning-workspace/`. 팀 공유. 기획 1건 = `engagements/<YYYY-MM>-<slug>/` 폴더 하나.
+
+규칙:
+
+- 스킬/커맨드는 산출물을 **항상 현재 작업 디렉토리(CWD = 워크스페이스)** 에 쓴다. 이 플러그인 레포 안에 산출물을 만들지 마라.
+- 템플릿·설정은 **`${CLAUDE_PLUGIN_ROOT}`** (= `plugins/product-planning/`)에서 읽는다.
+- 소스 레지스트리: 스키마는 플러그인 `config/sources.example.json`, **실제 값은 워크스페이스** `.planning/sources.json`.
+- 워크스페이스 `.planning/sources.json`의 `local.doc_dirs`에 `./engagements`가 있어, 과거 산출물이 새 기획의 추가 레거시 소스로 재학습된다.
+- 개발/테스트용 산출물만 이 레포의 `sandbox/`(gitignore)에 둔다.
+
+## 5. 레포 구조
+
+```text
+.claude-plugin/marketplace.json          # 마켓플레이스 매니페스트
+plugins/product-planning/
+  .claude-plugin/plugin.json             # 플러그인 매니페스트
+  commands/    new-planning, intake, domain-study, tech-research, prd, sdd (.md)
+  skills/      planning-intake, domain-study, tech-research, prd-author, sdd-author (각 SKILL.md)
+  agents/      research-agent.md          # 노션/Figma/로컬/웹 병렬 수집(출처 인용)
+  hooks/       hooks.json + session-start.sh   # 워크스페이스 감지→소스/컨벤션 주입
+  templates/   PRD, SDD, domain-study, ticket (.template.md)
+  config/      sources.example.json       # 소스 레지스트리 스키마(실제 값 아님)
+sandbox/                                  # 개발 테스트용 (gitignore)
+```
+
+## 6. 런타임 워크플로우 — 사용자가 기획을 시작하면
+
+워크스페이스 레포에서 `cd` 후 실행:
+
+- `/new-planning <노션-티켓-URL>` — 1~5단계 전체 파이프라인(인입→리서치 병렬→PRD→SDD)
+- 단계별: `/intake` `/domain-study` `/tech-research` `/prd` `/sdd`
+
+산출물: `engagements/<slug>/` 아래 `00-project-brief.md`, `research/{domain-study,tech-research}.md`, `PRD.md`, `SDD.md`.
+
+## 7. 절대 규칙 (이 레포에서 작업할 때)
+
+1. **도구/산출물 분리**: 산출물은 CWD(워크스페이스)에, 템플릿/설정은 `${CLAUDE_PLUGIN_ROOT}`에서. 플러그인 레포에 기획 산출물 커밋 금지.
+2. **사람 결정 존중**: 전략 항목은 `⛳DECISION`으로 표시만. 대신 결정하지 마라.
+3. **출처 인용**: 모든 사실(정책·요건·기술)에 출처(노션 URL/Figma 노드/파일 경로) 인용. 지어내지 마라.
+4. **최신 문서 검증**: 라이브러리/SDK는 기억이 아니라 Context7/공식 문서로 확인.
+5. **팀 공용 포맷**: 산출물 포맷 변경은 개별 산출물이 아니라 `templates/` 수정으로.
+
+## 8. Skill ↔ Sub-agent 설계 원칙 (도구를 만들 때)
+
+Skill과 Sub-agent는 경쟁이 아니라 **축이 다르다**. "둘 다 만들기"는 중복이 아니지만, **같은 방법론을 양쪽에 복붙하면 그건 중복**이다.
+
+- **역할 구분**: Skill = 방법론("어떻게", 메인 컨텍스트 안에서 실행, 사용자와 반복 협업·상태 공유). Sub-agent = 실행 컨텍스트("누가/어디서", 분리된 컨텍스트, 격리·병렬·도구 제한, 요약만 반환).
+- **레이어링**: `Command(진입점) → Skill(방법론) → 필요 시 Sub-agent 디스패치 → Sub-agent는 다시 그 Skill을 호출해 "how"를 따름`.
+- **단일 진실 소스(중복 방지)**: 방법론은 **Skill에만 1벌**. `agent.md`는 ① 역할 ② 허용 도구 ③ **출력 계약(반환 형식)** 만 두고 "구체적 방법은 `<skill>` 스킬 사용"으로 **참조**시킨다. 절차를 복붙하지 마라 — 팀이 한 곳(skill)만 고치면 메인·sub-agent 양쪽이 함께 개선된다.
+- **Sub-agent를 추가할지 판단**:
+  - 대량 읽기·중간 산출물로 **메인 컨텍스트가 오염**되나? → 추가(격리)
+  - **독립 작업 2개 이상을 동시에** 돌리나? → 추가(병렬)
+  - **사용자 실시간 결정·반복 리뷰**가 필요하나? → **Skill만** (맥락 단절 방지)
+  - 가벼운 노하우인가? → **Skill만**
+- **역할별 적용 지침**:
+  - **리서치**(domain/tech): Skill + Sub-agent **둘 다**. 분담 — skill=오케스트레이션·종합·파일작성·출처정책, agent=원자료 수집 후 digest 반환.
+  - **기획자**(PRD/SDD): **Skill만**. `⛳DECISION` 결정·리뷰가 메인 컨텍스트에서 일어나야 함(sub-agent로 빼면 맥락 단절→품질↓).
+  - **디자인**: **혼합**. 레거시 Figma 학습(대량 읽기)·병렬 화면 생성 = Sub-agent. Figma 쓰기 방법론은 `figma-use` 등 Skill이 소유.
+- **정리 TODO**: 현재 `research-agent.md`가 수집 절차를 일부 자체 보유 → `domain-study`/`tech-research` skill과 겹침. 경계 정리 필요(agent=수집·digest만, skill=종합·파일작성).
+
+## 9. 개발 방법
+
+- **스킬 추가**: `plugins/product-planning/skills/<name>/SKILL.md` (frontmatter `name`+`description` 필수).
+- **커맨드 추가**: `plugins/product-planning/commands/<name>.md` (frontmatter `description`+`argument-hint`).
+- **검증(E2E)**: 워크스페이스에서 실제(또는 과거) 티켓으로 `/new-planning` 실행 → 과거 사람 작성 PRD/SDD와 비교해 템플릿·프롬프트 보정.
+- **버전**: `plugin.json`+`marketplace.json`의 `version` 동시 갱신(SemVer). 자세한 기여 규칙은 `CONTRIBUTING.md`.
+- **커밋/푸시**: 사용자가 요청할 때만. push 원격은 아직 없음(사용자가 GitHub 연결 예정).
+
+## 10. 현황 · 로드맵
+
+- ✅ **Phase 1 (MVP, v0.1)**: 워크플로우 1~5단계 — 스킬 5종, 커맨드 6종, research-agent, SessionStart 훅 구현·커밋 완료. (E2E는 실제 티켓+sources.json 채운 뒤 미수행)
+- ⬜ **Phase 2**: 회의록 종합(`meeting-synthesis`) + 의사결정 브리프(`decision-brief`) — 단계 6~7.
+- ⬜ **Phase 3**: Figma 스토리보드·low/mid-fi 디자인·디스크립션 — 단계 8~13.
+- ⬜ **Phase 4**: 팀 배포 + 반복 개선 루프.
+
+## 11. 더 깊은 맥락
+
+- 승인된 전체 계획: `~/.claude/plans/product-manager-product-jazzy-globe.md`
+- 프로젝트 메모리: `project-overview` (세션 시작 시 자동 로드됨)
