@@ -8,7 +8,7 @@ description: 이번 기획과 관련된 레거시 제품/서비스 정책과 도
 워크플로우 3단계. 흩어진 레거시 제품 정책과 도메인 자료를 모아 한 문서로 종합한다.
 
 ## 선행
-- `00-ticket.md` 가 있어야 한다(없으면 `planning-intake` 먼저).
+- `00-project-brief.md` 가 있어야 한다(없으면 `planning-intake` 먼저).
 - 소스 레지스트리: 현재 디렉토리 `./.planning/sources.json`. 없으면 사용자에게 위치를 묻거나 `${CLAUDE_PLUGIN_ROOT}/config/sources.example.json` 스키마를 안내한다.
 
 ## 절차

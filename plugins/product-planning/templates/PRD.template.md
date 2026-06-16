@@ -1,7 +1,7 @@
 # PRD: {{PRODUCT_TITLE}}
 
 > 버전: draft · 작성: {{DATE}} · 담당: {{OWNER}}
-> 연결: [티켓](./00-ticket.md) · [도메인 스터디](./research/domain-study.md) · [기술 리서치](./research/tech-research.md)
+> 연결: [프로젝트 브리프](./00-project-brief.md) · [도메인 스터디](./research/domain-study.md) · [기술 리서치](./research/tech-research.md)
 >
 > 표기 규칙: `⛳DECISION` = 상위에서 사람이 결정해야 하는 항목(자동 채우지 않고 옵션/추천만 제시).
 

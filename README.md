@@ -30,7 +30,7 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 /new-planning <노션-티켓-URL>
 ```
 
-→ `engagements/<ticket-slug>/` 에 `00-ticket.md`, `research/`, `PRD.md`, `SDD.md` 생성.
+→ `engagements/<ticket-slug>/` 에 `00-project-brief.md`, `research/`, `PRD.md`, `SDD.md` 생성.
 
 단계별로 실행할 수도 있습니다: `/intake` `/domain-study` `/tech-research` `/prd` `/sdd`
 

@@ -8,7 +8,7 @@ description: 배정된 기획에 필요한 요구사항과 기술 구현 관련 
 워크플로우 4단계. 구현에 필요한 기술 요구사항과 문서를 모아 정리한다.
 
 ## 선행
-- `00-ticket.md` (요건) · 가능하면 `research/domain-study.md`.
+- `00-project-brief.md` (요건) · 가능하면 `research/domain-study.md`.
 - 소스 레지스트리 `./.planning/sources.json`.
 
 ## 절차

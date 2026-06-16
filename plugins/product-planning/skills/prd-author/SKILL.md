@@ -8,7 +8,7 @@ description: 인입 티켓과 리서치 결과를 토대로 PRD(제품 요구사
 워크플로우 5단계. 티켓 + 도메인/기술 리서치를 종합해 PRD 초안을 만든다.
 
 ## 선행 (모두 읽고 시작)
-- `00-ticket.md`, `research/domain-study.md`, `research/tech-research.md`.
+- `00-project-brief.md`, `research/domain-study.md`, `research/tech-research.md`.
 - 없는 입력이 있으면 사용자에게 알리고, 진행 여부를 확인.
 
 ## 절차

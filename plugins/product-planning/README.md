@@ -26,5 +26,5 @@ PM/PD 기획 워크플로우 자동화 플러그인. **산출물은 현재 작�
 ## 산출물 구조 (워크스페이스)
 ```
 engagements/<YYYY-MM>-<slug>/
-  00-ticket.md  research/{domain-study,tech-research}.md  PRD.md  SDD.md
+  00-project-brief.md  research/{domain-study,tech-research}.md  PRD.md  SDD.md
 ```

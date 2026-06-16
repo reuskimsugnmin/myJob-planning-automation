@@ -7,7 +7,7 @@ argument-hint: <노션-티켓-URL>
 
 다음 파이프라인을 **순서대로** 실행하세요. 각 단계 종료 시 핵심 결과를 1~3줄로 보고하고 다음 단계로 이어갑니다.
 
-1. **인입**: `planning-intake` 스킬로 티켓을 파싱하고 워크스페이스 engagement 폴더 + `00-ticket.md` 생성.
+1. **인입**: `planning-intake` 스킬로 티켓을 파싱하고 워크스페이스 engagement 폴더 + `00-project-brief.md` 생성. 연결 페이지가 탐색 예산을 넘으면 사용자에게 탐색 범위를 확인.
 2. **리서치(병렬)**: `domain-study` 와 `tech-research` 스킬을 실행. 둘은 독립적이므로 `research-agent` 서브에이전트로 **병렬** 수행하면 좋습니다. 결과는 `research/domain-study.md`, `research/tech-research.md`.
 3. **PRD**: `prd-author` 스킬로 `PRD.md` 작성. 상위 결정 항목은 `⛳DECISION` 으로 옵션·추천만 제시.
 4. **SDD**: `sdd-author` 스킬로 `SDD.md` 작성.
