@@ -3,7 +3,7 @@
 # 구버전은 status: superseded 로 남긴다.
 sources:
   - id: <kebab-id>
-    type: local                    # notion | figma | local | web | image | ticket
+    type: local                    # notion | figma | local | web | image | gdrive | slack | ticket
     ref: "<url | page-id | figma:file#node | 파일경로>"
     title: <소스 제목/파일명>
     version: ""                    # 파일명 버전 토큰 등

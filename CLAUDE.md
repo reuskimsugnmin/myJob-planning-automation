@@ -38,7 +38,7 @@ PM/PD(제품 기획자/디자이너)의 **13단계 제품 기획 워크플로우
 | 3 도메인 스터디 **또는 레퍼런스 리서치** | 🤖 | 레거시→`domain-study`(레거시 정책·도메인 수집·종합) / 신규→`reference-research`(동일 도메인 레퍼런스 분석, **UI 학습 금지·UX 패턴만**) |
 | 4 기술 리서치 | 🤖 | WebFetch/Context7/노션/로컬에서 요구사항·기술문서 정리 |
 | 5 PRD·SDD 작성 | 🤖 (SDD 여부 🧑 확인) | 빅테크 PM 방법론. **PRD 기본**(원페이저+상세: 유저스토리·기능명세·수용기준), **SDD는 판단 게이트로 조건부**(큰 프로젝트). 미결은 `decision-checklist`(추천안·임시채택·최종결정) |
-| 6 회의록 종합 | 🤖+🧑 | 미팅 참석은 사람. Gemini 회의록(Drive)→결정·액션아이템 추출→문서 반영은 Claude |
+| 6 회의록 종합 | 🤖+🧑 | 미팅 참석은 사람. `meeting-synthesis`: Gemini 회의록(Google Doc) 또는 Slack 스레드→결정·액션 추출→PRD/SDD 반영·체크리스트 확정. **모호하면 자의 해석 금지·사용자 확인** |
 | 7 상위 결정 | 🧑 (Claude 보조) | 사람이 결정. Claude는 옵션·트레이드오프·추천 *브리프*만 생성·반영 |
 | 8 스토리보드 템플릿 | 🧑 (Claude 보조) | 사내 템플릿 복제는 사람 주도, Claude 보조 가능 |
 | 9 PRD→스토리보드 | 🤖 | 서비스정책/플로우차트/ERD를 Figma MCP diagram+use_figma로 |
@@ -69,15 +69,15 @@ PM/PD(제품 기획자/디자이너)의 **13단계 제품 기획 워크플로우
 .claude-plugin/marketplace.json          # 마켓플레이스 매니페스트
 plugins/product-planning/
   .claude-plugin/plugin.json             # 플러그인 매니페스트
-  commands/    new-planning, intake, domain-study, reference-research, tech-research, prd, sdd (.md)
+  commands/    new-planning, intake, domain-study, reference-research, tech-research, prd, sdd, meeting-synthesis (.md)
   skills/      # 방법론 단일 소스
-    planning-intake, domain-study, reference-research, tech-research, prd-author, sdd-author
-    notion-explore, figma-explore, local-source-ingest, web-explore, image-explore  # 소스별 "읽기" 방법론(5소스)
+    planning-intake, domain-study, reference-research, tech-research, prd-author, sdd-author, meeting-synthesis
+    notion-explore, figma-explore, local-source-ingest, web-explore, image-explore, slack-explore, gdrive-explore  # 소스별 "읽기" 방법론(7소스)
     knowledge-base                                        # source-agnostic "쓰기"(파일 KB)
     decision-checklist                                    # 기획 공백→추천안→임시채택→최종결정 (PRD/SDD 공용)
   agents/      research-agent.md          # 격리 수집·digest만(방법은 위 읽기 스킬 참조)
   hooks/       hooks.json + session-start.sh   # 워크스페이스/KB 감지→소스·컨벤션 주입
-  templates/   PRD, SDD, domain-study, reference-research, tech-research, project-brief (.template.md)
+  templates/   PRD, SDD, domain-study, reference-research, tech-research, project-brief, meeting-log (.template.md)
                knowledge-base/{policy-registry,entity-glossary,tech-registry,source-manifest}.template
   config/      sources.example.json       # 소스 레지스트리 스키마(실제 값 아님)
 sandbox/                                  # 개발 테스트용 (gitignore)
@@ -113,10 +113,11 @@ Skill과 Sub-agent는 경쟁이 아니라 **축이 다르다**. "둘 다 만들�
   - **사용자 실시간 결정·반복 리뷰**가 필요하나? → **Skill만** (맥락 단절 방지)
   - 가벼운 노하우인가? → **Skill만**
 - **역할별 적용 지침**:
-  - **리서치**(domain/tech): Skill + Sub-agent **둘 다**. 분담 — skill=오케스트레이션·종합·파일작성·출처정책, agent=원자료 수집 후 digest 반환. 소스별 "읽기" 방법론은 5소스 스킬(`notion-explore`/`figma-explore`/`local-source-ingest`/`web-explore`/`image-explore`)에 단일 소스로, KB "쓰기" 스키마(policy-registry/entity-glossary/tech-registry/source-manifest)는 source-agnostic `knowledge-base` 스킬에. domain-study/reference-research/tech-research/intake/research-agent는 이들을 **참조**만 한다.
+  - **리서치**(domain/tech): Skill + Sub-agent **둘 다**. 분담 — skill=오케스트레이션·종합·파일작성·출처정책, agent=원자료 수집 후 digest 반환. 소스별 "읽기" 방법론은 7소스 스킬(`notion-explore`/`figma-explore`/`local-source-ingest`/`web-explore`/`image-explore`/`slack-explore`/`gdrive-explore`)에 단일 소스로, KB "쓰기" 스키마(policy-registry/entity-glossary/tech-registry/source-manifest)는 source-agnostic `knowledge-base` 스킬에. domain-study/reference-research/tech-research/intake/meeting-synthesis/research-agent는 이들을 **참조**만 한다.
   - **기술 자료 staleness**: 서드파티 라이브러리/SDK 문서는 KB에 진실로 캐시하지 않는다(§7.4). manifest에 버전+`as_of`만 남기고 사용 시점(특히 SDD 확정 전) Context7 재검증. 내부/파트너 API·연동 스펙만 `tech-registry`에 적재.
   - **HITL 게이트**: 사용자 실시간 확인이 필요한 결정(Figma 페이지 선정·완료 체크포인트, 노션 트리 예산 초과 확인)은 **메인 컨텍스트(Skill)** 가 소유. sub-agent는 게이트를 수행하지 않고 호출자에 위임.
   - **기획자**(PRD/SDD): **Skill만**(sub-agent 비채택 — 입력이 정제된 산출물이라 격리 이득 작고, 의사결정·리뷰가 메인 컨텍스트에서 일어나야 함). `prd-author`=빅테크 PM 역할·원페이저+상세·PRD↔SDD 판단 게이트, `sdd-author`=게이트 통과 시 상세 스펙. 기획 공백 처리 방법론(추천안→임시채택→최종결정→수정)은 `decision-checklist` 스킬 단일 소스로 양쪽이 참조. 작성 중 새 원자료가 필요하면 그때만 `research-agent` 재사용.
+  - **회의록 종합**(meeting-synthesis): **Skill만**. 회의록을 읽어 PRD/SDD를 편집하고, 모호하면 사용자 확인이 필요(HITL)·결정 반영이 메인 컨텍스트에서 일어나야 함. 읽기는 `gdrive-explore`/`slack-explore` 참조.
   - **디자인**: **혼합**. 레거시 Figma 학습(대량 읽기)·병렬 화면 생성 = Sub-agent. Figma 쓰기 방법론은 `figma-use` 등 Skill이 소유.
 - ✅ **정리 완료(v0.2)**: `research-agent.md`의 수집 절차 중복 제거 → 소스 읽기 스킬 참조로 전환. 노션 읽기 로직은 `notion-explore`로 통합(intake도 이를 참조). agent는 역할·도구·출력계약만 보유.
 
@@ -135,7 +136,7 @@ Skill과 Sub-agent는 경쟁이 아니라 **축이 다르다**. "둘 다 만들�
 - ✅ **Phase 1.6 (v0.3) — 4단계 기술 리서치 고도화**: `web-explore`(공개 웹·public notion.site·Context7) 추가로 읽기 스킬 4소스 대칭 완성, `tech-research` 오케스트레이션 재작성 + 템플릿 신설, KB `tech-registry`(내부/파트너 API·연동 스펙) + 라이브러리 staleness 정책, PRD/SDD가 KB 우선 조회·SDD Context7 재검증 게이트. (E2E 단계적 검증 예정)
 - ✅ **Phase 1.7 (v0.4) — 3단계 신규 제품 분기(레퍼런스 리서치)**: intake 2단계에 **프로젝트 유형 판정 게이트**(자율 판정·애매 시 사용자 확인) 추가, 신규면 `reference-research`로 분기. `image-explore`(레퍼런스 이미지 비전) 추가로 읽기 스킬 5소스, `reference-research` 스킬+템플릿+커맨드 신설(**UI 학습 금지·UX 패턴만**), new-planning 분기. (E2E 단계적 검증 예정)
 - ✅ **Phase 1.8 (v0.5) — 5단계 PRD/SDD 고도화**: 빅테크 PM 방법론 역할, PRD **원페이저 요약+상세 요구사항**(US/FR/수용기준/NFR) 재설계, **PRD↔SDD 판단 게이트**(조건부 SDD), `decision-checklist` 신규 스킬(기획 공백→추천안→임시채택→결정상태/최종결정 컬럼→본문 빠른 수정), AI 파싱+사람 완결 구조. (E2E 단계적 검증 예정)
-- ⬜ **Phase 2**: 회의록 종합(`meeting-synthesis`) + 의사결정 브리프(`decision-brief`) — 단계 6~7.
+- 🟡 **Phase 2 (진행 중)**: ✅ 회의록 종합(`meeting-synthesis`, v0.6 — Google Doc/Slack 읽기 `gdrive-explore`/`slack-explore` 추가, PRD/SDD 반영·체크리스트 확정·회의 로그, 모호 시 사용자 확인 게이트). ⬜ 의사결정 브리프(`decision-brief`) — 단계 7.
 - ⬜ **Phase 3**: Figma 스토리보드·low/mid-fi 디자인·디스크립션 — 단계 8~13.
 - ⬜ **Phase 4**: 팀 배포 + 반복 개선 루프.
 

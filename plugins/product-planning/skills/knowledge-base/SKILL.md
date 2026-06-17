@@ -27,7 +27,7 @@ description: 레거시 제품 서비스의 정책·도메인 지식을 출처별
 4. **`source-manifest.yaml`** — 수집한 모든 소스 원장(dedupe·버전충돌의 단일 기준):
    - `id, type, ref, title, version, created, modified, confidence, coverage`
    - `status`: `read | partial | skipped-binary | superseded | missing`, `ingested_at`
-   - `type` 열거: `notion | figma | local | web | image | ticket`.
+   - `type` 열거: `notion | figma | local | web | image | gdrive | slack | ticket`.
 5. **`raw/`** — zip 해제·fetch 원문 캐시. 워크스페이스 `.gitignore` 대상.
 
 ## staleness 정책 (기술 자료)

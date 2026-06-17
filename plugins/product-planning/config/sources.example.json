@@ -30,8 +30,13 @@
     "web": ["https://reference-service.example.com"]
   },
   "gdrive": {
-    "_desc": "Gemini 자동 회의록이 저장되는 구글 드라이브 폴더(Phase 2에서 사용).",
+    "_desc": "Gemini 자동 회의록(Google Doc)이 저장되는 구글 드라이브 폴더. meeting-synthesis(6단계)가 gdrive-explore로 읽습니다. 개별 회의록 URL은 실행 시 인자로 전달해도 됩니다.",
     "meeting_notes_folder": "<gdrive-folder-id-or-name>"
+  },
+  "slack": {
+    "_desc": "회의/논의가 정리되는 Slack. meeting-synthesis(6단계)가 slack-explore로 스레드를 읽습니다. 개별 스레드 URL은 실행 시 인자로 전달해도 됩니다. channels 는 자주 보는 채널 힌트(선택).",
+    "workspace": "<https://<workspace>.slack.com>",
+    "channels": ["<선택: #채널 또는 채널 ID>"]
   },
   "knowledge_base": {
     "_desc": "파일 기반 지식베이스 위치. 비우면 기본 .planning/knowledge-base/ 사용. shared=true 면 engagement 간 공유·누적합니다. raw/ 하위는 .gitignore 에 추가하세요.",
