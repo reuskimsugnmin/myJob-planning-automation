@@ -14,7 +14,18 @@ description: 로컬 자료(폴더·zip·문서 파일)를 인제스트하는 방
 - `local.doc_dirs` 에 `./engagements` 가 있으면 과거 산출물을 추가 레거시 소스로 재학습한다.
 
 ## 2. 압축 해제 (zip)
-- `.zip` 을 만나면 직접 압축 해제한다: `unzip -O cp949` 등으로 **한글 파일명 인코딩**에 유의해 `.planning/knowledge-base/raw/<archive-name>/` 에 푼다.
+- `.zip` 을 만나면 `.planning/knowledge-base/raw/<archive-name>/` 에 직접 해제한다.
+- **한글 파일명 인코딩(CP949) 주의**: Linux는 `unzip -O cp949` 가능하나 **macOS 기본 `unzip` 은 `-O` 미지원** → CP949 파일명에서 `Illegal byte sequence` 로 실패한다. 이때 **Python `zipfile` 폴백**을 쓴다(파일명 bytes를 `cp437` 로 인코딩 후 `cp949` 디코딩):
+  ```python
+  import zipfile, os
+  z = zipfile.ZipFile(zip_path)
+  for i in z.infolist():
+      if i.is_dir(): continue
+      try: name = i.filename.encode('cp437').decode('cp949')
+      except Exception: name = i.filename
+      out = os.path.join(dest, name); os.makedirs(os.path.dirname(out), exist_ok=True)
+      open(out,'wb').write(z.open(i).read())
+  ```
 - 내부에 중첩 zip이 있으면 재귀적으로 해제한다.
 - `raw/` 는 워크스페이스 `.gitignore` 에 추가하도록 안내한다(원문 캐시).
 
@@ -24,7 +35,9 @@ description: 로컬 자료(폴더·zip·문서 파일)를 인제스트하는 방
 
 ## 4. 파일 타입별 읽기
 - **본문 파싱**: `.md` `.txt` `.csv` `.json` → `Read`. **`.pdf` → `Read`(필요 시 `pages` 로 분할)**.
-- **메타만 기록**: `.xlsx` `.xls` 등 스프레드시트, 이미지(`.png` `.jpg` …), `.hwp` `.doc(x)` 는 본문을 파싱하지 않는다. `source-manifest` 에 파일 존재·메타만 기록하고, 그 정보가 제품 기획에 필수면 문서에 `추가 확인 필요` 로 표시한다.
+- **메타만 기록**: `.xlsx` `.xls` 등 스프레드시트, `.hwp` `.doc(x)` 는 본문을 파싱하지 않는다. `source-manifest` 에 메타만 기록하고, 필수 정보면 문서에 `추가 확인 필요` 로 표시한다.
+- **이미지(`.png` `.jpg` …)**: 기본은 메타만(`status: skipped-binary`). 단 그 **이미지가 스펙/시나리오 등 핵심 콘텐츠**(예: 연동 규격이 PDF가 아닌 이미지로 제공)면 `image-explore` 스킬로 라우팅해 비전 분석한다.
+- 참고: 규격 묶음은 PDF(본문 파싱 가능)+PNG(시나리오 다이어그램) 혼합으로 올 수 있다 — PDF 우선 파싱, 이미지는 위 규칙대로.
 
 ## 5. 버전 충돌 해소 (핵심)
 - 같은 기획 내용에 대해 **여러 버전 파일**이 있을 수 있다.

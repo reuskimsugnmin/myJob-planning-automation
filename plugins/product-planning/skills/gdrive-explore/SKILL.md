@@ -8,8 +8,12 @@ description: Google Drive 문서(특히 Gemini가 생성한 Google Meet 자동 �
 Google Drive "읽기"의 단일 소스. 사내 계정 인증이 필요하므로 WebFetch가 아니라 **Google Drive MCP**로 읽는다.
 파일은 쓰지 않는다 — 저장은 `knowledge-base`(source-manifest), 분석·문서화는 호출자 스킬이 한다.
 
+## 0. 접근 전제 (계정/공유)
+- Drive MCP는 **연결된 Google 계정이 소유/공유받은 파일만** 읽는다. `read_file_content`·`get_file_metadata` 가 **둘 다 404("not found")면 콘텐츠가 아니라 접근 권한 문제**다(다른 계정 소유 또는 미공유).
+- 이때 자의로 추정하지 말고 사용자에게: ① 문서를 연결 계정에 공유 ② 또는 Drive 커넥터를 그 문서를 볼 수 있는 계정으로 재연결 — 을 요청한다. `list_recent_files` 의 `owner` 로 현재 연결 계정을 확인할 수 있다.
+
 ## 1. URL 해소
-- Google Doc URL 예: `https://docs.google.com/document/d/<FILE_ID>/edit`. `/d/<FILE_ID>` 가 file id.
+- Google Doc URL 예: `https://docs.google.com/document/d/<FILE_ID>/edit`(`?tab=...` 등 쿼리 무시). `/d/<FILE_ID>` 가 file id.
 - 폴더에서 찾을 땐 `search_files`(예: `sources.json` 의 `gdrive.meeting_notes_folder`) 로 좁힌다. 메타는 `get_file_metadata`(제목·수정일).
 
 ## 2. 읽기

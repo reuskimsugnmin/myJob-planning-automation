@@ -1,6 +1,6 @@
 {
   "name": "product-planning",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "PM/PD 제품 기획 워크플로우(티켓 인입 → 레거시/기술 리서치 → PRD/SDD → Figma 스토리보드) 자동화. 산출물은 현재 작업 디렉토리(워크스페이스)에 생성됩니다.",
   "author": { "name": "Sungmin Kim", "email": "smkim931206@gmail.com" },
   "keywords": ["pm", "pd", "product", "prd", "sdd", "planning", "notion", "figma"]
