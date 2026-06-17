@@ -9,8 +9,8 @@ argument-hint: <노션-티켓-URL>
 
 1. **인입 + 유형 판정**: `planning-intake` 스킬로 티켓을 파싱하고 워크스페이스 engagement 폴더 + `00-project-brief.md` 생성. 연결 페이지가 탐색 예산을 넘으면 사용자에게 탐색 범위를 확인. **2단계에서 프로젝트 유형(레거시 개선 / 신규 기능·화면 / 혼합)을 판정**하고(애매하면 사용자 확인) brief에 확정 기록.
 2. **리서치(병렬)**: 유형에 따라 3단계를 분기 — **레거시 개선이면 `domain-study`, 신규 기능이면 `reference-research`, 혼합이면 둘 다**. 이와 `tech-research` 는 독립적이므로 `research-agent` 서브에이전트로 **병렬** 수행하면 좋습니다. 결과는 `research/{domain-study|reference-research}.md`, `research/tech-research.md`.
-3. **PRD**: `prd-author` 스킬로 `PRD.md` 작성. 상위 결정 항목은 `⛳DECISION` 으로 옵션·추천만 제시.
-4. **SDD**: `sdd-author` 스킬로 `SDD.md` 작성.
+3. **PRD**: `prd-author` 스킬로 `PRD.md` 작성(빅테크 PM 원페이저+상세). 미결 정책/기획/기술 요건은 `decision-checklist` 로 추천안·임시 채택안 제시. PRD 후 **SDD 필요 여부를 판단해 이유와 함께 사용자에게 확인**.
+4. **SDD(조건부)**: PRD 게이트에서 SDD 필요로 **확인된 경우에만** `sdd-author` 스킬로 `SDD.md` 작성. 단순 개선·소규모 신규면 생략하고 종료.
 
 ## 일시정지 규칙
 - 인입(2단계)에서 **프로젝트 유형(레거시/신규)** 판정이 애매하면 멈추고 사용자에게 "기존 레거시 개선 vs 신규 기능"을 확인한 뒤 3단계 경로를 확정.
