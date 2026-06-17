@@ -75,6 +75,7 @@ plugins/product-planning/
     notion-explore, figma-explore, local-source-ingest, web-explore, image-explore, slack-explore, gdrive-explore  # 소스별 "읽기" 방법론(7소스)
     knowledge-base                                        # source-agnostic "쓰기"(파일 KB)
     decision-checklist                                    # 기획 공백→추천안→임시채택→최종결정 (PRD/SDD 공용)
+    prd-sdd-editing                                       # PRD/SDD 편집 불변식(ID 안정성·유실 방지·출처/changelog) 단일 소스
   agents/      research-agent.md          # 격리 수집·digest만(방법은 위 읽기 스킬 참조)
   hooks/       hooks.json + session-start.sh   # 워크스페이스/KB 감지→소스·컨벤션 주입
   templates/   PRD, SDD, domain-study, reference-research, tech-research, project-brief, meeting-log (.template.md)
@@ -116,7 +117,7 @@ Skill과 Sub-agent는 경쟁이 아니라 **축이 다르다**. "둘 다 만들�
   - **리서치**(domain/tech): Skill + Sub-agent **둘 다**. 분담 — skill=오케스트레이션·종합·파일작성·출처정책, agent=원자료 수집 후 digest 반환. 소스별 "읽기" 방법론은 7소스 스킬(`notion-explore`/`figma-explore`/`local-source-ingest`/`web-explore`/`image-explore`/`slack-explore`/`gdrive-explore`)에 단일 소스로, KB "쓰기" 스키마(policy-registry/entity-glossary/tech-registry/source-manifest)는 source-agnostic `knowledge-base` 스킬에. domain-study/reference-research/tech-research/intake/meeting-synthesis/research-agent는 이들을 **참조**만 한다.
   - **기술 자료 staleness**: 서드파티 라이브러리/SDK 문서는 KB에 진실로 캐시하지 않는다(§7.4). manifest에 버전+`as_of`만 남기고 사용 시점(특히 SDD 확정 전) Context7 재검증. 내부/파트너 API·연동 스펙만 `tech-registry`에 적재.
   - **HITL 게이트**: 사용자 실시간 확인이 필요한 결정(Figma 페이지 선정·완료 체크포인트, 노션 트리 예산 초과 확인)은 **메인 컨텍스트(Skill)** 가 소유. sub-agent는 게이트를 수행하지 않고 호출자에 위임.
-  - **기획자**(PRD/SDD): **Skill만**(sub-agent 비채택 — 입력이 정제된 산출물이라 격리 이득 작고, 의사결정·리뷰가 메인 컨텍스트에서 일어나야 함). `prd-author`=빅테크 PM 역할·원페이저+상세·PRD↔SDD 판단 게이트, `sdd-author`=게이트 통과 시 상세 스펙. 기획 공백 처리 방법론(추천안→임시채택→최종결정→수정)은 `decision-checklist` 스킬 단일 소스로 양쪽이 참조. 작성 중 새 원자료가 필요하면 그때만 `research-agent` 재사용.
+  - **기획자**(PRD/SDD): **Skill만**(sub-agent 비채택 — 입력이 정제된 산출물이라 격리 이득 작고, 의사결정·리뷰가 메인 컨텍스트에서 일어나야 함. PRD/SDD 편집 "전담 sub-agent"도 같은 이유로 비채택: HITL 단절·cold start 상태 유실·격리 이득 작음 → 대신 **공유 스킬**로 일관성 확보). `prd-author`=빅테크 PM 역할·원페이저+상세·PRD↔SDD 판단 게이트, `sdd-author`=게이트 통과 시 상세 스펙. 기획 공백 처리는 `decision-checklist`, **기존 문서 편집 불변식(ID 안정성·유실 방지·출처/changelog·구조 보존)은 `prd-sdd-editing` 스킬 단일 소스**로 prd-author/sdd-author/meeting-synthesis/decision-brief가 참조. 작성 중 새 원자료가 필요하면 그때만 `research-agent` 재사용.
   - **회의록 종합**(meeting-synthesis): **Skill만**. 회의록을 읽어 PRD/SDD를 편집하고, 모호하면 사용자 확인이 필요(HITL)·결정 반영이 메인 컨텍스트에서 일어나야 함. 읽기는 `gdrive-explore`/`slack-explore` 참조.
   - **디자인**: **혼합**. 레거시 Figma 학습(대량 읽기)·병렬 화면 생성 = Sub-agent. Figma 쓰기 방법론은 `figma-use` 등 Skill이 소유.
 - ✅ **정리 완료(v0.2)**: `research-agent.md`의 수집 절차 중복 제거 → 소스 읽기 스킬 참조로 전환. 노션 읽기 로직은 `notion-explore`로 통합(intake도 이를 참조). agent는 역할·도구·출력계약만 보유.

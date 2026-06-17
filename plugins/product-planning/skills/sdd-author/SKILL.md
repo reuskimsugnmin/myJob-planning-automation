@@ -33,3 +33,4 @@ description: PRD와 기술 리서치를 토대로 SDD(Spec Driven Document)를 �
 ## 원칙
 - PRD에 없는 스펙을 임의로 추가하지 않는다(필요하면 PRD 갱신을 제안).
 - 기술 사실은 tech-research/공식 문서에 근거하고 출처를 단다.
+- 기존 `SDD.md` 를 갱신할 때는 `prd-sdd-editing` 의 편집 불변식(ID 안정성·요구사항 유실 방지·출처/changelog·구조 보존)을 따른다.
