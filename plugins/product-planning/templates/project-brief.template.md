@@ -2,7 +2,8 @@
 
 > 출처 티켓: {{SOURCE_TICKET_URL}}
 > 인입일: {{DATE}} · 담당(PM/PD): {{OWNER}} · 상태: intake 완료
-> 프로젝트 유형: {{PROJECT_TYPE}} <!-- 레거시 개선 / 신규 기능·화면 -->
+> 프로젝트 유형: {{PROJECT_TYPE}} <!-- 레거시 개선 / 신규 기능·화면 / 혼합 -->
+> 3단계 경로: {{STAGE3_PATH}} <!-- 레거시→domain-study / 신규→reference-research / 혼합→둘 다 -->
 >
 > 표기 규칙: 티켓에서 확인 불가한 항목은 `미상 — 추가 확인 필요`. 모든 사실은 출처(노션 URL/페이지) 인용. 사람이 결정할 항목은 `⛳DECISION`.
 

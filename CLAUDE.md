@@ -14,8 +14,8 @@ PM/PD(제품 기획자/디자이너)의 **13단계 제품 기획 워크플로우
 새 기획 업무가 들어올 때마다 반복되는 사용자의 실제 워크플로우. 각 단계가 어디서 정보를 얻는지(소스/도구)까지 포함한다. 이것이 우리가 자동화하려는 대상의 원본이다.
 
 1. 리더가 제품 개발 기획 업무를 배정 → **노션 티켓**으로 전달.
-2. 티켓 내 **이전 히스토리와 간략한 개발 요건** 파악 → 노션 티켓 내용.
-3. 관련 **레거시 제품 서비스 정책·도메인 스터디** → 노션·Figma·로컬파일 등 **scatter된 자료** 학습.
+2. 티켓 내 **이전 히스토리와 간략한 개발 요건** 파악 → 노션 티켓 내용. (이때 **레거시 개선 vs 신규 기능 유형을 판정** — 자율 판정 1원칙, 애매하면 사용자 확인 — 하여 3단계 경로를 확정)
+3. 관련 **레거시 제품 서비스 정책·도메인 스터디** → 노션·Figma·로컬파일 등 **scatter된 자료** 학습. **(신규 기능이면 도메인 스터디 대신 동일 도메인 레퍼런스 리서치 — UI는 학습 금지, UX 패턴만)**
 4. 필요한 **요구사항과 기술 구현 Document** 파악 → 노션 또는 기술 문서(웹링크·로컬파일).
 5. **PRD 및 필요 시 SDD** 작성.
 6. 유관부서·개발조직과 **커뮤니케이션(미팅)** → 구글밋 Gemini **자동 회의록** 생성·관리.
@@ -34,8 +34,8 @@ PM/PD(제품 기획자/디자이너)의 **13단계 제품 기획 워크플로우
 | 단계 | 담당 | Claude 자동화 / 사람 역할 |
 | --- | --- | --- |
 | 1 티켓 인입 | 🤖 | Notion MCP로 티켓 fetch·파싱 |
-| 2 히스토리·요건 파악 | 🤖 | 티켓 본문·연결 문서 요약·구조화 |
-| 3 도메인 스터디 | 🤖 | 소스 레지스트리 기반 레거시 정책·도메인 수집·종합 |
+| 2 히스토리·요건 파악 | 🤖 (애매 시 🧑 확인) | 티켓 본문·연결 문서 요약·구조화. **프로젝트 유형(레거시/신규) 판정** → 애매하면 사용자 확인 → 3단계 경로 확정 |
+| 3 도메인 스터디 **또는 레퍼런스 리서치** | 🤖 | 레거시→`domain-study`(레거시 정책·도메인 수집·종합) / 신규→`reference-research`(동일 도메인 레퍼런스 분석, **UI 학습 금지·UX 패턴만**) |
 | 4 기술 리서치 | 🤖 | WebFetch/Context7/노션/로컬에서 요구사항·기술문서 정리 |
 | 5 PRD·SDD 작성 | 🤖 | 템플릿 기반 초안. 결정 필요 항목은 `⛳DECISION` placeholder |
 | 6 회의록 종합 | 🤖+🧑 | 미팅 참석은 사람. Gemini 회의록(Drive)→결정·액션아이템 추출→문서 반영은 Claude |
@@ -69,14 +69,14 @@ PM/PD(제품 기획자/디자이너)의 **13단계 제품 기획 워크플로우
 .claude-plugin/marketplace.json          # 마켓플레이스 매니페스트
 plugins/product-planning/
   .claude-plugin/plugin.json             # 플러그인 매니페스트
-  commands/    new-planning, intake, domain-study, tech-research, prd, sdd (.md)
+  commands/    new-planning, intake, domain-study, reference-research, tech-research, prd, sdd (.md)
   skills/      # 방법론 단일 소스
-    planning-intake, domain-study, tech-research, prd-author, sdd-author
-    notion-explore, figma-explore, local-source-ingest, web-explore   # 소스별 "읽기" 방법론(4소스)
+    planning-intake, domain-study, reference-research, tech-research, prd-author, sdd-author
+    notion-explore, figma-explore, local-source-ingest, web-explore, image-explore  # 소스별 "읽기" 방법론(5소스)
     knowledge-base                                        # source-agnostic "쓰기"(파일 KB)
   agents/      research-agent.md          # 격리 수집·digest만(방법은 위 읽기 스킬 참조)
   hooks/       hooks.json + session-start.sh   # 워크스페이스/KB 감지→소스·컨벤션 주입
-  templates/   PRD, SDD, domain-study, tech-research, project-brief (.template.md)
+  templates/   PRD, SDD, domain-study, reference-research, tech-research, project-brief (.template.md)
                knowledge-base/{policy-registry,entity-glossary,tech-registry,source-manifest}.template
   config/      sources.example.json       # 소스 레지스트리 스키마(실제 값 아님)
 sandbox/                                  # 개발 테스트용 (gitignore)
@@ -112,7 +112,7 @@ Skill과 Sub-agent는 경쟁이 아니라 **축이 다르다**. "둘 다 만들�
   - **사용자 실시간 결정·반복 리뷰**가 필요하나? → **Skill만** (맥락 단절 방지)
   - 가벼운 노하우인가? → **Skill만**
 - **역할별 적용 지침**:
-  - **리서치**(domain/tech): Skill + Sub-agent **둘 다**. 분담 — skill=오케스트레이션·종합·파일작성·출처정책, agent=원자료 수집 후 digest 반환. 소스별 "읽기" 방법론은 4소스 스킬(`notion-explore`/`figma-explore`/`local-source-ingest`/`web-explore`)에 단일 소스로, KB "쓰기" 스키마(policy-registry/entity-glossary/tech-registry/source-manifest)는 source-agnostic `knowledge-base` 스킬에. domain-study/tech-research/intake/research-agent는 이들을 **참조**만 한다.
+  - **리서치**(domain/tech): Skill + Sub-agent **둘 다**. 분담 — skill=오케스트레이션·종합·파일작성·출처정책, agent=원자료 수집 후 digest 반환. 소스별 "읽기" 방법론은 5소스 스킬(`notion-explore`/`figma-explore`/`local-source-ingest`/`web-explore`/`image-explore`)에 단일 소스로, KB "쓰기" 스키마(policy-registry/entity-glossary/tech-registry/source-manifest)는 source-agnostic `knowledge-base` 스킬에. domain-study/reference-research/tech-research/intake/research-agent는 이들을 **참조**만 한다.
   - **기술 자료 staleness**: 서드파티 라이브러리/SDK 문서는 KB에 진실로 캐시하지 않는다(§7.4). manifest에 버전+`as_of`만 남기고 사용 시점(특히 SDD 확정 전) Context7 재검증. 내부/파트너 API·연동 스펙만 `tech-registry`에 적재.
   - **HITL 게이트**: 사용자 실시간 확인이 필요한 결정(Figma 페이지 선정·완료 체크포인트, 노션 트리 예산 초과 확인)은 **메인 컨텍스트(Skill)** 가 소유. sub-agent는 게이트를 수행하지 않고 호출자에 위임.
   - **기획자**(PRD/SDD): **Skill만**. `⛳DECISION` 결정·리뷰가 메인 컨텍스트에서 일어나야 함(sub-agent로 빼면 맥락 단절→품질↓).
@@ -132,6 +132,7 @@ Skill과 Sub-agent는 경쟁이 아니라 **축이 다르다**. "둘 다 만들�
 - ✅ **Phase 1 (MVP, v0.1)**: 워크플로우 1~5단계 — 스킬 5종, 커맨드 6종, research-agent, SessionStart 훅 구현·커밋 완료. (E2E는 실제 티켓+sources.json 채운 뒤 미수행)
 - ✅ **Phase 1.5 (v0.2) — 3단계 도메인 스터디 고도화**: 소스별 읽기 스킬(`notion-explore`/`figma-explore`/`local-source-ingest`) + 파일 KB(`knowledge-base`) 추가, `domain-study` 오케스트레이션 재작성, intake/research-agent 경계정리, 산출물 템플릿·소스 스키마 확장. (E2E는 1→2→3 단계적 검증 예정)
 - ✅ **Phase 1.6 (v0.3) — 4단계 기술 리서치 고도화**: `web-explore`(공개 웹·public notion.site·Context7) 추가로 읽기 스킬 4소스 대칭 완성, `tech-research` 오케스트레이션 재작성 + 템플릿 신설, KB `tech-registry`(내부/파트너 API·연동 스펙) + 라이브러리 staleness 정책, PRD/SDD가 KB 우선 조회·SDD Context7 재검증 게이트. (E2E 단계적 검증 예정)
+- ✅ **Phase 1.7 (v0.4) — 3단계 신규 제품 분기(레퍼런스 리서치)**: intake 2단계에 **프로젝트 유형 판정 게이트**(자율 판정·애매 시 사용자 확인) 추가, 신규면 `reference-research`로 분기. `image-explore`(레퍼런스 이미지 비전) 추가로 읽기 스킬 5소스, `reference-research` 스킬+템플릿+커맨드 신설(**UI 학습 금지·UX 패턴만**), new-planning 분기. (E2E 단계적 검증 예정)
 - ⬜ **Phase 2**: 회의록 종합(`meeting-synthesis`) + 의사결정 브리프(`decision-brief`) — 단계 6~7.
 - ⬜ **Phase 3**: Figma 스토리보드·low/mid-fi 디자인·디스크립션 — 단계 8~13.
 - ⬜ **Phase 4**: 팀 배포 + 반복 개선 루프.

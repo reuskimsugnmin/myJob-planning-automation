@@ -24,6 +24,11 @@
     "tech_docs": ["https://example.com/tech-doc", "https://<org>.notion.site/<public-doc>"],
     "context7_libraries": ["<선택: 검증할 라이브러리/SDK 이름>"]
   },
+  "reference": {
+    "_desc": "신규 제품(그린필드)용 동일 도메인 레퍼런스 소스. reference-research 스킬이 사용합니다. images=레퍼런스 화면 캡쳐(로컬 이미지/dir, image-explore가 비전 분석), web=레퍼런스 공개 웹링크(web-explore). Figma 레퍼런스는 figma.reference_files 를 사용하세요.",
+    "images": ["<로컬 이미지 파일 또는 디렉토리 경로>"],
+    "web": ["https://reference-service.example.com"]
+  },
   "gdrive": {
     "_desc": "Gemini 자동 회의록이 저장되는 구글 드라이브 폴더(Phase 2에서 사용).",
     "meeting_notes_folder": "<gdrive-folder-id-or-name>"

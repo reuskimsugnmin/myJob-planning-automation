@@ -15,6 +15,7 @@ tools: Read, Glob, Grep, Bash, WebFetch, WebSearch, mcp__claude_ai_Notion__notio
 - Figma: `figma-explore` 스킬. **단일 페이지씩만** 위임받아 처리한다(같은 파일에 복수 에이전트 동시 디스패치 금지, 병렬 금지).
 - 로컬(zip 해제·재귀 순회·버전충돌): `local-source-ingest` 스킬(`Bash` unzip/find/stat 사용).
 - 공개 웹/문서(public notion.site 포함): `web-explore` 스킬(`WebFetch`/`WebSearch`).
+- 레퍼런스 이미지(png/jpg 스크린샷): `image-explore` 스킬(`Read` 비전, 선별·직렬).
 - 라이브러리 문서: `web-explore` 의 Context7 절차(`resolve-library-id` → `query-docs`, 최신 버전 검증).
 - 적재 스키마가 필요하면 `knowledge-base` 스킬 참조.
 
