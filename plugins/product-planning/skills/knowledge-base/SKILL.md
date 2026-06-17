@@ -21,10 +21,18 @@ description: 레거시 제품 서비스의 정책·도메인 지식을 출처별
    - `sources[]`: `{ type: notion|figma|local|web|ticket, ref, version, confidence }`
    - `related_entities[]`, `affected_by_engagement`(이번 기획 영향 여부/메모), `conflicts[]`
 2. **`entity-glossary.md`** — 도메인 용어·엔티티: 정의·속성·관계·출처.
-3. **`source-manifest.yaml`** — 수집한 모든 소스 원장(dedupe·버전충돌의 단일 기준):
+3. **`tech-registry.yaml`** — (tech-research) **내부/파트너 API·연동 스펙** 레지스트리:
+   - `id, name, kind(internal-api|partner-api|integration-spec), summary, base_url, auth, key_endpoints[], key_params, rate_limit, error_handling, data_formats, constraints[], integration_points[], maps_to_requirement[], version, as_of, sources[], status`
+   - ⚠️ **서드파티 라이브러리/SDK는 여기 넣지 않는다**(아래 staleness 정책 참고).
+4. **`source-manifest.yaml`** — 수집한 모든 소스 원장(dedupe·버전충돌의 단일 기준):
    - `id, type, ref, title, version, created, modified, confidence, coverage`
    - `status`: `read | partial | skipped-binary | superseded | missing`, `ingested_at`
-4. **`raw/`** — zip 해제·fetch 원문 캐시. 워크스페이스 `.gitignore` 대상.
+5. **`raw/`** — zip 해제·fetch 원문 캐시. 워크스페이스 `.gitignore` 대상.
+
+## staleness 정책 (기술 자료)
+- tech-registry·manifest 항목은 `as_of`(확인 기준일)를 보유한다.
+- **서드파티 라이브러리/SDK 문서는 진실로 캐시하지 않는다**(빠르게 변함, CLAUDE.md §7.4). `source-manifest` 에 이름·버전·`as_of` 만 남기고 **사용 시점(특히 SDD 확정 전) Context7 로 재검증**한다.
+- KB는 기술 자료에 대해 "무엇을·어떤 버전으로·언제 확인했는가"의 출처·버전 원장 역할을 한다.
 
 ## 적재 방법
 - **append + dedupe**: 같은 `id` 가 이미 있으면 덮어쓰지 말고 **출처/내용을 최신 기준으로 갱신**하고 기존 출처는 보존(여러 소스가 한 정책을 뒷받침).

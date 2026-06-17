@@ -9,6 +9,7 @@ description: 인입 티켓과 리서치 결과를 토대로 PRD(제품 요구사
 
 ## 선행 (모두 읽고 시작)
 - `00-project-brief.md`, `research/domain-study.md`, `research/tech-research.md`.
+- 기술/정책 사실은 **`research/*.md` + 지식베이스(`.planning/knowledge-base/` 의 tech-registry·policy-registry)를 우선 조회**해 사용한다. **원문 문서를 재페치하지 않는다**(출처는 KB 항목 `id`/문서 인용).
 - 없는 입력이 있으면 사용자에게 알리고, 진행 여부를 확인.
 
 ## 절차

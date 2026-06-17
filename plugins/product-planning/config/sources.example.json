@@ -20,8 +20,9 @@
     "exclude": [".git", "node_modules", "~$*", ".DS_Store"]
   },
   "web": {
-    "_desc": "기술 문서 웹 링크(공개 문서). 라이브러리 공식 문서는 Context7 MCP로도 보강됩니다.",
-    "tech_docs": ["https://example.com/tech-doc"]
+    "_desc": "기술 문서 웹 링크(공개 문서). public notion.site(타 조직 published 페이지) 등은 Notion MCP가 아니라 WebFetch로 읽습니다(web-explore 스킬). context7_libraries 는 최신성 검증할 라이브러리/SDK 힌트(선택)입니다.",
+    "tech_docs": ["https://example.com/tech-doc", "https://<org>.notion.site/<public-doc>"],
+    "context7_libraries": ["<선택: 검증할 라이브러리/SDK 이름>"]
   },
   "gdrive": {
     "_desc": "Gemini 자동 회의록이 저장되는 구글 드라이브 폴더(Phase 2에서 사용).",

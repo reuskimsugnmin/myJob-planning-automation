@@ -9,6 +9,8 @@ description: PRD와 기술 리서치를 토대로 SDD(Spec Driven Document)를 �
 
 ## 선행 (모두 읽고 시작)
 - `PRD.md`, `research/tech-research.md`. 보조로 `research/domain-study.md`.
+- 기술 사실은 **`research/tech-research.md` + 지식베이스 `tech-registry.yaml` 를 우선 조회**해 사용한다(원문 재페치 X, 출처는 KB `id`/문서 인용).
+- **라이브러리/SDK 재검증 게이트**: SDD 확정 전, `source-manifest` 에 기록된 라이브러리/SDK 버전을 **Context7(`resolve-library-id`→`query-docs`)로 재검증**한다. stale하면 `tech-research` 갱신을 요청한 뒤 진행한다.
 
 ## 절차
 
