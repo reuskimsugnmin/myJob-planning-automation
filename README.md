@@ -6,13 +6,16 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 
 13단계 기획 워크플로우 중 반복 노동을 Claude가 주도하고, 전략적 결정만 사람이 내립니다.
 
-| 단계 | 담당 |
-|---|---|
-| 1 티켓 인입 · 2 요건 파악 · 3 도메인 스터디 · 4 기술 리서치 · 5 PRD/SDD | 🤖 Claude (MVP) |
-| 6 회의록 종합 · 7 의사결정 브리프 | 🤖 보조 / 🧑 결정 |
-| 8~13 Figma 스토리보드 · low/mid-fi 디자인 · 디스크립션 | 🤖 Claude / 🧑 high-fi 확정 |
+| 단계 | 담당 | 상태 |
+|---|---|---|
+| 1 티켓 인입 · 2 요건 파악(+레거시/신규 유형 판정) | 🤖 Claude | ✅ |
+| 3 도메인 스터디 **또는** 레퍼런스 리서치(신규 제품) | 🤖 Claude | ✅ |
+| 4 기술 리서치 · 5 PRD/(조건부)SDD | 🤖 Claude | ✅ |
+| 6 회의록 종합(Google Doc/Slack → PRD/SDD 반영) | 🤖 보조 / 🧑 확인 | ✅ |
+| 7 의사결정 브리프 | 🤖 보조 / 🧑 결정 | ⬜ |
+| 8~13 Figma 스토리보드 · low/mid-fi 디자인 · 디스크립션 | 🤖 Claude / 🧑 high-fi 확정 | ⬜ |
 
-> 현재 릴리스(v0.1)는 **Phase 1 MVP = 단계 1~5**를 제공합니다.
+> 현재 릴리스(v0.6)는 **단계 1~6**을 제공합니다(레거시/신규 분기 + 팀 공용 파일 지식베이스 포함). 단계 7~13은 로드맵.
 
 ## 설치 (팀원)
 
@@ -32,11 +35,11 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 
 → `engagements/<ticket-slug>/` 에 `00-project-brief.md`, `research/`, `PRD.md`, `SDD.md` 생성.
 
-단계별로 실행할 수도 있습니다: `/intake` `/domain-study` `/tech-research` `/prd` `/sdd`
+단계별로 실행할 수도 있습니다: `/intake` `/domain-study`(또는 신규 제품이면 `/reference-research`) `/tech-research` `/prd` `/sdd` `/meeting-synthesis`
 
 ## 사전 준비
 
-- **MCP 연동**: Notion, Figma, Google Drive, Context7 (Claude 커넥터로 연결)
+- **MCP 연동**: Notion, Figma, Google Drive, Slack, Context7 (Claude 커넥터로 연결)
 - **워크스페이스 레포**: `.planning/sources.json`에 레거시 자료 위치(노션 DB ID / Figma file key 등) 등록. 스키마는 [`config/sources.example.json`](plugins/product-planning/config/sources.example.json) 참고.
 
 ## 레포 구조

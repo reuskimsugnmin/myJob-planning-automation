@@ -36,7 +36,7 @@ description: 회의 결과(Gemini가 만든 Google Doc 회의록 또는 Slack �
 - **그 외 변경**: 요구사항/정책/스펙의 수정·추가·삭제를 PRD/SDD에 반영하되 `prd-sdd-editing` 의 편집 불변식(ID 안정성·요구사항 유실 방지·구조 보존)을 지키고, **각 변경에 회의 출처를 인용**(추적성).
 
 ### 5. 회의 로그 + 보고
-- `engagements/<slug>/research/meetings/<YYYY-MM-DD>.md` 에 회의 digest(결정·액션·반영 변경점)를 남기고, `source-manifest` 에 회의 출처(type=gdrive/slack, as_of)를 기록.
+- `${CLAUDE_PLUGIN_ROOT}/templates/meeting-log.template.md` 를 채워 `engagements/<slug>/research/meetings/<YYYY-MM-DD>.md` 에 회의 digest(요약·결정·액션·반영 변경점)를 남기고, `source-manifest` 에 회의 출처(type=gdrive/slack, as_of)를 기록.
 - 사용자에게 **보고**: ① 회의에서 확인한 핵심 내용 ② 사용자에게 확인받은 모호 항목과 결론 ③ PRD/SDD에서 수정/추가/삭제/갱신한 부분(섹션·FR·D-n 단위).
 
 ## 원칙
