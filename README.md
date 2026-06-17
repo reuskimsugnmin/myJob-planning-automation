@@ -111,9 +111,18 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 ## 설치 (팀원)
 
 ```
-/plugin marketplace add <github-org>/myJob-planning-automation
+# 1) 마켓플레이스 등록 (최초 1회)
+/plugin marketplace add reuskimsugnmin/myJob-planning-automation
+
+# 2) 플러그인 설치
 /plugin install product-planning@myjob-planning
+
+# 3) 이후 업데이트를 받을 때마다
+/plugin marketplace update myjob-planning
 ```
+
+> `myjob-planning` = 마켓플레이스 이름(`marketplace.json`의 `name`), `product-planning` = 플러그인 이름(`plugin.json`의 `name`).
+> 누군가 `main`에 변경을 머지하면, 각자 `/plugin marketplace update`로 최신 도구를 받습니다. (개발용 git clone을 `pull`하는 것과 별개 동작입니다.)
 
 ## 사전 준비
 
