@@ -26,7 +26,8 @@ PM/PD 기획 워크플로우 자동화 플러그인. **산출물은 현재 작�
 
 ## 설정
 - 소스 레지스트리: 워크스페이스 `.planning/sources.json` (스키마: [config/sources.example.json](config/sources.example.json))
-- SessionStart 훅이 워크스페이스를 감지해 소스/컨벤션을 컨텍스트로 주입.
+- SessionStart 훅이 워크스페이스를 감지해 소스/컨벤션을 컨텍스트로 주입하고, **필요한 MCP 커넥터(Notion 필수·Context7 권장·Figma/Slack/Google Drive)와 감지 여부·설치 방법**을 안내합니다.
+- MCP는 번들하지 않습니다 — 이미 설치/인증한 커넥터를 그대로 재사용(중복 설치 없음). 미설치 시 `/mcp` 또는 `claude mcp add` 로 추가하세요.
 
 ## 산출물 구조 (워크스페이스)
 ```

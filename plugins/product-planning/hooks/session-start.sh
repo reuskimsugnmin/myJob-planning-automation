@@ -35,6 +35,48 @@ else
 fi
 
 emit ""
+emit "## 필요한 MCP 커넥터"
+emit "이 플러그인의 단계별 자동화는 아래 MCP를 사용합니다. **이미 설치/인증돼 있으면 그대로 재사용**되며, 플러그인은 MCP를 중복 설치하지 않습니다."
+
+# 로컬 설정 파일에서 MCP 등록 여부를 best-effort 로 감지한다.
+# (claude.ai 계정 커넥터는 로컬 파일에 안 나타날 수 있으므로 ⬜ 여도 정상 동작 가능)
+detect_mcp() {
+  local pat="$1" f
+  for f in "./.mcp.json" "$HOME/.claude.json" "./.claude/settings.json" "$HOME/.claude/settings.json"; do
+    if [ -f "$f" ] && grep -qiE "$pat" "$f" 2>/dev/null; then
+      return 0
+    fi
+  done
+  return 1
+}
+mark() { if detect_mcp "$1"; then printf '✅'; else printf '⬜'; fi; }
+
+emit ""
+emit "| MCP | 감지 | 용도 · 사용 단계 | 필요도 |"
+emit "| --- | :--: | --- | --- |"
+emit "| **Notion** | $(mark 'notion') | 티켓 인입·노션 자료 읽기 (단계 1·2·3·4) | **필수** |"
+emit "| **Context7** | $(mark 'context7') | 라이브러리/SDK 최신 문서 검증 (단계 4·SDD) | 권장 |"
+emit "| **Figma** | $(mark 'figma') | 레거시 화면 학습·스토리보드·디자인 (단계 8~13) | 디자인 단계 |"
+emit "| **Slack** | $(mark 'slack') | 회의 스레드·결정/액션 추출 (단계 6) | 선택 |"
+emit "| **Google Drive** | $(mark 'gdrive|google.?drive|google_drive') | Gemini 회의록(Doc) 종합 (단계 6) | 선택 |"
+emit ""
+emit "- ✅ = 로컬 설정에서 감지됨 · ⬜ = 미감지(아래 방법으로 설치 필요)."
+emit "- claude.ai 계정 커넥터로 이미 인증했다면 ⬜ 로 보여도 동작할 수 있습니다(로컬 설정 파일엔 안 나타남). \`/mcp\` 로 실제 연결 상태를 확인하세요."
+
+emit ""
+emit "### 설치/인증 방법"
+emit "가장 간단한 방법은 Claude Code에서 \`/mcp\` 를 실행해 커넥터를 추가·인증하는 것입니다(OAuth 자동 처리)."
+emit "CLI로 추가하려면:"
+emit '```bash'
+emit "# 노션 (원격) — 필수"
+emit "claude mcp add --transport http notion https://mcp.notion.com/mcp"
+emit "# Context7 (로컬) — 기술 문서 조회"
+emit "claude mcp add context7 -- npx -y @upstash/context7-mcp"
+emit "# Figma / Slack / Google Drive 는 '/mcp' 커넥터 추가 또는 각 제공사 공식 MCP 문서 참고"
+emit '```'
+emit "설치 후 \`/mcp\` 로 연결 상태를 확인하세요."
+
+emit ""
 emit "## 핵심 규칙"
 emit "- 사람 결정 항목은 자동으로 채우지 말고 \`⛳DECISION\` 으로 표시하고 옵션·추천만 제시합니다."
 emit "- 모든 사실은 출처(노션/Figma/로컬/웹)를 인용합니다."

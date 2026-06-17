@@ -126,7 +126,9 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 
 ## 사전 준비
 
-1. **MCP 연동** (Claude 커넥터): Notion · Figma · Google Drive · Slack · Context7. *연결 계정이 해당 자료를 볼 수 있어야* 읽힙니다(예: Google Doc 회의록은 연결 계정에 공유 필요).
+1. **MCP 연동** (Claude 커넥터): Notion(필수) · Context7(권장) · Figma · Google Drive · Slack. *연결 계정이 해당 자료를 볼 수 있어야* 읽힙니다(예: Google Doc 회의록은 연결 계정에 공유 필요).
+   - 플러그인은 MCP를 **번들하지 않습니다** — 이미 설치/인증한 커넥터를 그대로 재사용합니다(중복 설치 없음). 세션 시작 시 SessionStart 훅이 **어떤 MCP가 필요한지·감지 여부·설치 방법**을 표로 안내합니다.
+   - 설치: Claude Code에서 `/mcp` 로 커넥터 추가·인증(OAuth 자동). CLI 대안 — 노션 `claude mcp add --transport http notion https://mcp.notion.com/mcp`, Context7 `claude mcp add context7 -- npx -y @upstash/context7-mcp`.
 2. **워크스페이스 레포** `.planning/sources.json` 작성 — 단계별로 쓰는 키:
 
 | 키 | 쓰는 단계 |

@@ -77,7 +77,7 @@ plugins/product-planning/
     decision-checklist                                    # 기획 공백→추천안→임시채택→최종결정 (PRD/SDD 공용)
     prd-sdd-editing                                       # PRD/SDD 편집 불변식(ID 안정성·유실 방지·출처/changelog) 단일 소스
   agents/      research-agent.md          # 격리 수집·digest만(방법은 위 읽기 스킬 참조)
-  hooks/       hooks.json + session-start.sh   # 워크스페이스/KB 감지→소스·컨벤션 주입
+  hooks/       hooks.json + session-start.sh   # 워크스페이스/KB 감지→소스·컨벤션 주입 + 필요 MCP 점검(감지/설치 안내)
   templates/   PRD, SDD, domain-study, reference-research, tech-research, project-brief, meeting-log (.template.md)
                knowledge-base/{policy-registry,entity-glossary,tech-registry,source-manifest}.template
   config/      sources.example.json       # 소스 레지스트리 스키마(실제 값 아님)
