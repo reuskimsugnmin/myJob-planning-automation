@@ -4,6 +4,7 @@
 set -euo pipefail
 
 SOURCES="./.planning/sources.json"
+KB_DIR="./.planning/knowledge-base"
 
 emit() { printf '%s\n' "$1"; }
 
@@ -21,6 +22,10 @@ if [ -f "$SOURCES" ]; then
     emit ""
     emit "등록된 소스 키:"
     jq -r 'to_entries[] | select(.key|startswith("_")|not) | "- " + .key + ": " + ((.value | keys | map(select(startswith("_")|not)) | join(", ")) // "")' "$SOURCES" 2>/dev/null || true
+  fi
+  if [ -d "$KB_DIR" ]; then
+    emit ""
+    emit "지식베이스 감지됨: \`$KB_DIR\` — 레거시 정책/도메인이 누적되어 있습니다(grep/Read로 조회, domain-study가 갱신)."
   fi
 else
   emit "## 워크스페이스 미감지"

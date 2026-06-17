@@ -1,0 +1,19 @@
+# 레거시 서비스 정책 레지스트리 (지식베이스)
+# knowledge-base 스킬이 노션/Figma/로컬에서 파악한 레거시 정책을 출처별로 누적한다.
+# 같은 id는 덮어쓰지 말고 최신 기준 갱신 + 기존 출처 보존. 모든 항목 출처 필수.
+policies:
+  - id: <kebab-stable-id>          # 예: payment-refund-window
+    name: <정책 이름>
+    area: <도메인 구분>             # 예: 결제 / 정산 / 회원 / 배차
+    summary: <한두 줄 요약>
+    conditions:                    # 적용 조건
+      - <조건>
+    exceptions:                    # 예외
+      - <예외>
+    current_behavior: <현재 동작(AS-IS)>
+    status: active                 # active | deprecated | uncertain
+    sources:
+      - { type: notion, ref: "<url|page-id>", version: "", confidence: high }   # type: notion|figma|local|web|ticket
+    related_entities: []           # entity-glossary 의 용어
+    affected_by_engagement: ""     # 이번 기획이 이 정책을 건드리는가 / 메모
+    conflicts: []                  # 충돌하는 다른 출처/정책 메모

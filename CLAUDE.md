@@ -70,10 +70,14 @@ PM/PD(제품 기획자/디자이너)의 **13단계 제품 기획 워크플로우
 plugins/product-planning/
   .claude-plugin/plugin.json             # 플러그인 매니페스트
   commands/    new-planning, intake, domain-study, tech-research, prd, sdd (.md)
-  skills/      planning-intake, domain-study, tech-research, prd-author, sdd-author (각 SKILL.md)
-  agents/      research-agent.md          # 노션/Figma/로컬/웹 병렬 수집(출처 인용)
-  hooks/       hooks.json + session-start.sh   # 워크스페이스 감지→소스/컨벤션 주입
-  templates/   PRD, SDD, domain-study, ticket (.template.md)
+  skills/      # 방법론 단일 소스
+    planning-intake, domain-study, tech-research, prd-author, sdd-author
+    notion-explore, figma-explore, local-source-ingest   # 소스별 "읽기" 방법론
+    knowledge-base                                        # source-agnostic "쓰기"(파일 KB)
+  agents/      research-agent.md          # 격리 수집·digest만(방법은 위 읽기 스킬 참조)
+  hooks/       hooks.json + session-start.sh   # 워크스페이스/KB 감지→소스·컨벤션 주입
+  templates/   PRD, SDD, domain-study, project-brief (.template.md)
+               knowledge-base/{policy-registry,entity-glossary,source-manifest}.template
   config/      sources.example.json       # 소스 레지스트리 스키마(실제 값 아님)
 sandbox/                                  # 개발 테스트용 (gitignore)
 ```
@@ -85,7 +89,7 @@ sandbox/                                  # 개발 테스트용 (gitignore)
 - `/new-planning <노션-티켓-URL>` — 1~5단계 전체 파이프라인(인입→리서치 병렬→PRD→SDD)
 - 단계별: `/intake` `/domain-study` `/tech-research` `/prd` `/sdd`
 
-산출물: `engagements/<slug>/` 아래 `00-project-brief.md`, `research/{domain-study,tech-research}.md`, `PRD.md`, `SDD.md`.
+산출물: `engagements/<slug>/` 아래 `00-project-brief.md`, `research/{domain-study,tech-research}.md`, `PRD.md`, `SDD.md`. 레거시 지식베이스는 워크스페이스 공용 `.planning/knowledge-base/`(policy-registry/entity-glossary/source-manifest, `raw/`는 gitignore).
 
 ## 7. 절대 규칙 (이 레포에서 작업할 때)
 
@@ -108,10 +112,11 @@ Skill과 Sub-agent는 경쟁이 아니라 **축이 다르다**. "둘 다 만들�
   - **사용자 실시간 결정·반복 리뷰**가 필요하나? → **Skill만** (맥락 단절 방지)
   - 가벼운 노하우인가? → **Skill만**
 - **역할별 적용 지침**:
-  - **리서치**(domain/tech): Skill + Sub-agent **둘 다**. 분담 — skill=오케스트레이션·종합·파일작성·출처정책, agent=원자료 수집 후 digest 반환.
+  - **리서치**(domain/tech): Skill + Sub-agent **둘 다**. 분담 — skill=오케스트레이션·종합·파일작성·출처정책, agent=원자료 수집 후 digest 반환. 소스별 "읽기" 방법론은 `notion-explore`/`figma-explore`/`local-source-ingest` 스킬에 단일 소스로, KB "쓰기" 스키마는 source-agnostic `knowledge-base` 스킬에. domain-study/tech-research/intake/research-agent는 이들을 **참조**만 한다.
+  - **HITL 게이트**: 사용자 실시간 확인이 필요한 결정(Figma 페이지 선정·완료 체크포인트, 노션 트리 예산 초과 확인)은 **메인 컨텍스트(Skill)** 가 소유. sub-agent는 게이트를 수행하지 않고 호출자에 위임.
   - **기획자**(PRD/SDD): **Skill만**. `⛳DECISION` 결정·리뷰가 메인 컨텍스트에서 일어나야 함(sub-agent로 빼면 맥락 단절→품질↓).
   - **디자인**: **혼합**. 레거시 Figma 학습(대량 읽기)·병렬 화면 생성 = Sub-agent. Figma 쓰기 방법론은 `figma-use` 등 Skill이 소유.
-- **정리 TODO**: 현재 `research-agent.md`가 수집 절차를 일부 자체 보유 → `domain-study`/`tech-research` skill과 겹침. 경계 정리 필요(agent=수집·digest만, skill=종합·파일작성).
+- ✅ **정리 완료(v0.2)**: `research-agent.md`의 수집 절차 중복 제거 → 소스 읽기 스킬 참조로 전환. 노션 읽기 로직은 `notion-explore`로 통합(intake도 이를 참조). agent는 역할·도구·출력계약만 보유.
 
 ## 9. 개발 방법
 
@@ -124,6 +129,7 @@ Skill과 Sub-agent는 경쟁이 아니라 **축이 다르다**. "둘 다 만들�
 ## 10. 현황 · 로드맵
 
 - ✅ **Phase 1 (MVP, v0.1)**: 워크플로우 1~5단계 — 스킬 5종, 커맨드 6종, research-agent, SessionStart 훅 구현·커밋 완료. (E2E는 실제 티켓+sources.json 채운 뒤 미수행)
+- ✅ **Phase 1.5 (v0.2) — 3단계 도메인 스터디 고도화**: 소스별 읽기 스킬(`notion-explore`/`figma-explore`/`local-source-ingest`) + 파일 KB(`knowledge-base`) 추가, `domain-study` 오케스트레이션 재작성, intake/research-agent 경계정리, 산출물 템플릿·소스 스키마 확장. (E2E는 1→2→3 단계적 검증 예정)
 - ⬜ **Phase 2**: 회의록 종합(`meeting-synthesis`) + 의사결정 브리프(`decision-brief`) — 단계 6~7.
 - ⬜ **Phase 3**: Figma 스토리보드·low/mid-fi 디자인·디스크립션 — 단계 8~13.
 - ⬜ **Phase 4**: 팀 배포 + 반복 개선 루프.

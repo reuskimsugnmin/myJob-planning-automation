@@ -12,42 +12,31 @@ description: 노션 기획 티켓을 인입해 파싱하고 글로벌 빅테크 
 
 ## 절차
 
-### 1. URL 정규화 & fetch
-- 받은 값을 그대로 `notion-fetch`(`include_discussions: true`)에 전달한다. `app.notion.com/p/<id>?v=...&source=...` 형식도 그대로 동작한다.
-- 실패하면 URL에서 **32자리 hex ID**(마지막 경로 세그먼트, 쿼리·대시 제거)를 추출해 ID로 재시도한다.
+> 노션을 읽고 트리를 탐색하는 방법(fetch·ID폴백·타입판별·user resolve·코멘트·예산 게이트)은 **`notion-explore` 스킬을 따른다**(여기에 복붙하지 않음). intake는 그 결과로 **킥오프 브리프를 만드는 고유 책임**만 가진다.
 
-### 2. 엔티티 타입 판별
-- 결과 `metadata.type` 확인: `page`면 진행. `database`/data source(`collection://`)면 단일 티켓이 아니므로, 어떤 엔트리를 인입할지 사용자에게 확인하거나 `notion-search`로 좁힌다.
-- DB 엔트리 페이지는 `<properties>`와 `<ancestor-path>`를 가진다.
+### 1. 노션 읽기 (notion-explore 위임)
+- `notion-explore` 절차로 티켓을 fetch하고(ID 폴백 포함) 엔티티 타입을 판별한다. DB/data source면 어떤 엔트리를 인입할지 확인.
+- 티켓 트리를 **예산 게이트**(N≈8~10, 초과 시 사용자 확인) 안에서 탐색한다. 대량 탐색은 `research-agent` 에 위임 가능(digest 반환, 종합·파일작성은 intake).
+- 담당자(`user://`)·코멘트·미해결 의사결정을 resolve한다.
 
-### 3. 메타·요건·링크 추출 (티켓에 없는 건 지어내지 않음)
-- **properties**: 업무번호·제목·진행상태·진행률·우선순위(MoSCoW)·계획일정·태그·이슈 히스토리, 담당자/참조자(mention-user), relation(연결 페이지 URL들), 첨부파일(file://), 외부 URL.
+### 2. 메타·요건·링크 추출 (티켓에 없는 건 지어내지 않음)
+- **properties**: 업무번호·제목·진행상태·진행률·우선순위(MoSCoW)·계획일정·태그·이슈 히스토리, 담당자/참조자, relation(연결 페이지 URL들), 첨부파일(file://), 외부 URL.
 - **ancestor-path**: 상위 위치(맥락).
 - **content**: 핵심 요구사항/개발 항목(번호 항목 원문 충실), 서비스 정책/플로우, 본문 내 Figma·외부 링크.
+- 미해결 질문·결정 사항은 `⛳DECISION` 후보로 정리.
 
-### 4. 담당자 resolve
-- 추출한 `user://` ID를 모아 `notion-get-users`로 실명·역할을 일괄 resolve(중복 제거). 실패한 ID는 ID 그대로 두고 표기.
-
-### 5. 코멘트/의사결정 추출
-- fetch의 `<page-discussions>`에 discussion이 있으면 `notion-get-comments`로 스레드를 가져온다(미해결 우선). 미해결 질문·결정 사항을 `⛳DECISION` 후보로 정리.
-
-### 6. 링크 인벤토리 분류
+### 3. 링크 인벤토리 분류
 - 추출한 링크를 분류: 상위(ancestor) / 하위 일감 / 기타 relation / Figma / 첨부 / 외부.
 
-### 7. 우선순위 + 예산 기반 탐색
-- **자동 탐색**: ancestor 1-hop + 핵심 relation(하위 일감·프로덕트·업무구분·주요 이슈·회의록 일부). 각 페이지를 `notion-fetch`로 읽어 1줄 요약.
-- **예산 상한 N≈8~10페이지**. 연결 페이지가 상한을 넘으면, 전체 목록을 제시하고 **어디까지 탐색할지 사용자에게 확인**한다(무단으로 전부 펼치지 않는다).
-- **대량 탐색은 `research-agent` 서브에이전트에 위임**(URL 묶음 → digest 반환). 메인 컨텍스트 오염 방지(§8 원칙). 종합·파일작성은 이 스킬이 한다.
-
-### 8. 폴더 생성 (CWD = 워크스페이스)
+### 4. 폴더 생성 (CWD = 워크스페이스)
 - slug: `<YYYY-MM>-<업무번호-소문자>-<제목-kebab>` (예: `2026-06-atm-63-taxi-reservation`). 업무번호 없으면 제목 기반.
 - 생성: `engagements/<slug>/` 와 하위 `research/`.
 
-### 9. 브리프 작성
+### 5. 브리프 작성
 - `${CLAUDE_PLUGIN_ROOT}/templates/project-brief.template.md`를 읽어 `engagements/<slug>/00-project-brief.md`로 채운다.
 - 모든 사실에 출처 인용. 티켓에서 알 수 없는 항목은 `미상 — 추가 확인 필요`. 프로젝트 유형(레거시/신규) 판정(불명확하면 사용자 확인).
 
-### 10. 보고
+### 6. 보고
 - slug·프로젝트 유형·핵심 요건 3줄·미해결 의사결정·미상 항목·탐색한 연결 페이지 수를 보고하고, 다음 단계(`domain-study`)를 제안.
 
 ## 원칙
