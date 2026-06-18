@@ -29,7 +29,7 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 
 ## 도구 구성
 
-**커맨드 (8)** — 워크플로우 진입점
+**커맨드 (11)** — 워크플로우 진입점
 
 | 커맨드 | 단계 | 설명 |
 |---|---|---|
@@ -41,15 +41,19 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 | `/prd` | 5 | 빅테크 PM 방법론 PRD(원페이저+상세+의사결정 체크리스트) |
 | `/sdd` | 5 | (게이트 통과 시) 구현 스펙 SDD |
 | `/meeting-synthesis` | 6 | 회의록(Google Doc)/Slack 스레드 → PRD/SDD 반영 |
+| `/storyboard` | 8~11 | PRD→Figma 화면 실현(모드 A 운영/B 백지) + 비주얼 게이트 |
+| `/design-desc` | 12 | 화면 디스크립션 작성(뱃지 매칭) + 디자인 동기화 |
+| `/design-sync` | 11/13 | 디스크립션↔디자인 동기화 검증(claim↔노드 대조표) |
 
-**스킬 (17)** — 방법론(커맨드 없이 대화 중 자동 트리거 가능)
+**스킬 (20)** — 방법론(커맨드 없이 대화 중 자동 트리거 가능)
 
 - **워크플로우(오케스트레이션, 7)**: `planning-intake` · `domain-study` · `reference-research` · `tech-research` · `prd-author` · `sdd-author` · `meeting-synthesis`
 - **소스별 읽기(7)**: `notion-explore` · `figma-explore` · `local-source-ingest` · `web-explore` · `image-explore` · `slack-explore` · `gdrive-explore`
+- **디자인 쓰기(3, 단계 8~13)**: `figma-design`(쓰기 원시·3세트 구조·골격·swap/심볼/폰트) · `storyboard-build`(화면 실현·모드 A/B·비주얼 게이트) · `design-description`(디스크립션+동기화·뱃지 매칭·대조표)
 - **공용(3)**: `knowledge-base`(파일 KB 쓰기) · `decision-checklist`(기획 공백→추천안→최종결정) · `prd-sdd-editing`(문서 편집 불변식)
 
 **서브에이전트**: `research-agent` — 대량/병렬 자료 수집을 격리 컨텍스트에서 수행(방법은 읽기 스킬 참조, 요약만 반환).
-**템플릿/설정/훅**: `templates/`(산출물 양식) · `config/sources.example.json`(소스 스키마) · SessionStart 훅(워크스페이스·KB 감지).
+**템플릿/설정/훅**: `templates/`(산출물 양식, `design/` 디자인 양식 포함) · `config/sources.example.json`(소스 스키마) · SessionStart 훅(워크스페이스·KB 감지) + 디자인 단계 관측 훅(Figma 쓰기·파일쓰기 로그 → 워크스페이스 `.planning/logs`).
 
 ---
 
@@ -102,9 +106,18 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 - **입력**: 회의 소스 링크(인자). `sources.json` `gdrive.meeting_notes_folder`·`slack` 참고.
 - **산출물**: 갱신된 `PRD.md`/`SDD.md` + `research/meetings/<날짜>.md`(회의 digest·결정·반영 변경점).
 
-### 7~13단계 · 추후 업데이트 예정 ⬜
-- **7 의사결정 브리프(`decision-brief`)**: 체크리스트 미결 항목에 대한 옵션·트레이드오프·추천 브리프 — *추후 업데이트 예정*.
-- **8 스토리보드 템플릿 · 9 PRD→Figma(서비스정책/플로우차트/ERD) · 10 레거시·레퍼런스 Figma 학습 · 11 low/mid-fi 디자인 · 12 상세 디스크립션 · 13 high-fi 고도화**: *추후 업데이트 예정*.
+### 7단계 · 의사결정 브리프 ⬜
+- **`decision-brief`**: 체크리스트 미결 항목에 대한 옵션·트레이드오프·추천 브리프 — *추후 업데이트 예정*.
+
+### 8~13단계 · 디자인(스토리보드·low/mid-fi·디스크립션) ✅ *(v0.7)*
+PRD 확정 후 **명시적 별도 호출**로 시작합니다(디자인 취향·high-fi 확정은 사람 몫이라 `/new-planning` 파이프라인에 포함하지 않음). Figma 쓰기는 단일 파일 변형·HITL이 많아 **메인 컨텍스트(Skill)** 가 소유합니다(sub-agent 없음).
+
+- **8~11 `/storyboard [slug] --figma-url <URL> [--mode A|B]`**: `PRD.md`(+`SDD.md`)에서 화면목록·정책·노출조건·플랫폼분기·에러를 뽑아 `design/policy-table.md` 를 만들고, 기존 파일을 스캔해 갭 분석 → **모드 선택**(A 운영 in-place / B 백지 구축, 프로젝트 유형 기반 추천) → 화면 생성·TO-BE 반영(`figma-design` 방법론: ++Top 골격·라이브러리 조립·swap 결함·심볼 처리) → **비주얼 게이트**(`get_screenshot` 렌더 vs PRD).
+  - **사람 확인(HITL)**: 모드 선택, 갭 분석 결과 확인, 비주얼 게이트 통과 판정, 전략적 UX 배치(`⛳DECISION`).
+  - **입력**: `figma.storyboard_template_file`·`design_system_files`(연결 라이브러리). **산출물**: `design/policy-table.md`, `design/logs/`.
+- **12 `/design-desc [slug] --figma-url <URL> [--scan|--apply]`**: 번호 뱃지↔annotation **1:1 매칭**(가장자리 거리·아이콘 인터랙션 후보 포함), 본문 형식(역할 문장 + 대괄호 섹션, **Figma 노드명 금지**, 인터랙티브 컴포넌트 `[Default 상태]` 명시), 2단계 검증(개수+의미 스크린샷), 그리고 **디자인 동기화**(visible/variant/텍스트) 후 **claim↔노드 대조표**(0건도 표로 증명)로 완료.
+- **13 검증 `/design-sync [slug] --figma-url <URL>`**: 전체 페이지 동기화 상태를 claim↔노드 대조표로 검증, 불일치는 자동 수정안 제시(사용자 확인 후 적용).
+- **사람 몫**: 실제 high-fi 디자인 취향·확정(단계 13)은 사람이 결정, Claude는 디스크립션 고도화 보조.
 
 ---
 
@@ -134,14 +147,15 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 | 키 | 쓰는 단계 |
 |---|---|
 | `notion.policy_dbs`·`domain_pages`·`ticket` | 1~3 |
-| `figma.legacy_files`·`reference_files`·`explore_pages` | 3, (이후 디자인) |
+| `figma.legacy_files`·`reference_files`·`explore_pages` | 3(읽기) |
+| `figma.storyboard_template_file`·`design_system_files` | 8~13(디자인 쓰기) |
 | `local.doc_dirs`·`archives`·`exclude` | 3~4 |
 | `web.tech_docs`·`context7_libraries` | 4 |
 | `reference.web`·`images` | 3-alt(신규) |
 | `gdrive.meeting_notes_folder` · `slack.workspace`·`channels` | 6 |
 | `knowledge_base.path`·`shared` | 전 단계(KB 위치) |
 
-3. **워크스페이스 `.gitignore`**: `.planning/knowledge-base/raw/`(원문 캐시)는 제외 권장.
+3. **워크스페이스 `.gitignore`**: `.planning/knowledge-base/raw/`(원문 캐시)·`.planning/logs/`(디자인 단계 관측 로그)는 제외 권장.
 
 ## 사용 (요약)
 
@@ -150,9 +164,11 @@ cd <기획-워크스페이스-레포>
 /new-planning <노션-티켓-URL>     # 1~5 한 번에
 # 또는 단계별:
 /intake <URL> → /domain-study(또는 /reference-research) → /tech-research → /prd → /sdd → /meeting-synthesis
+# PRD 확정 후 디자인(8~13, 명시적 별도 호출):
+/storyboard <slug> --figma-url <URL> → /design-desc <slug> --figma-url <URL> → /design-sync <slug> --figma-url <URL>
 ```
 
-→ `engagements/<YYYY-MM>-<slug>/` 에 `00-project-brief.md`, `research/*.md`, `PRD.md`, `SDD.md` 가, `.planning/knowledge-base/` 에 팀 공용 KB가 생성됩니다.
+→ `engagements/<YYYY-MM>-<slug>/` 에 `00-project-brief.md`, `research/*.md`, `PRD.md`, `SDD.md`, `design/{policy-table.md, descriptions, logs}` 가, `.planning/knowledge-base/` 에 팀 공용 KB가 생성됩니다.
 
 ## 레포 구조
 
