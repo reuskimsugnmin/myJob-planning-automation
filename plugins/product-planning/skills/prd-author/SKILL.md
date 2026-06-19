@@ -17,7 +17,13 @@ description: 인입 티켓과 리서치 결과를 토대로 글로벌 빅테크 
 ## 선행 (모두 읽고 시작)
 - `00-project-brief.md`, `research/domain-study.md` 또는 `research/reference-research.md`, `research/tech-research.md`.
 - 기술/정책 사실은 **research/*.md + 지식베이스(`.planning/knowledge-base/` tech-registry·policy-registry)를 우선 조회**(원문 재페치 X, 출처는 KB `id`/문서 인용).
-- 없는 입력이 있으면 사용자에게 알리고 진행 여부 확인. 작성 중 새 원자료 수집이 필요하면 `research-agent` 재사용(작성은 메인 컨텍스트).
+
+### 리서치 완결 게이트 (HITL · 작성 전 필수)
+PRD는 3~4단계 리서치가 모두 끝난 뒤의 작업이다. 작성 시작 전에 engagement 폴더의 산출물 존재를 확인한다:
+- **`research/tech-research.md` 부재** → 멈추고 사용자에게 확인: *"4단계 기술 리서치가 누락됐습니다 — `/tech-research` 를 먼저 수행할까요, 아니면 (단순 개선/소규모 신규라) 의도적으로 건너뛸까요?"* 자의로 생략하지 않는다.
+- **유형별 3단계 산출물 부재**(레거시→`research/domain-study.md`, 신규→`research/reference-research.md`) → 함께 확인.
+- 사용자가 명시적으로 "건너뛰고 진행"을 택한 경우에만 누락 입력 없이 작성하되, 그 사실과 한계를 PRD 보고에 기록한다.
+- 그 외 없는 입력이 있으면 사용자에게 알리고 진행 여부 확인. 작성 중 새 원자료 수집이 필요하면 `research-agent` 재사용(작성은 메인 컨텍스트).
 
 ## 절차
 1. `${CLAUDE_PLUGIN_ROOT}/templates/PRD.template.md` 로 `PRD.md` 작성.

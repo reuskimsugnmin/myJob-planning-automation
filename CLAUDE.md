@@ -89,7 +89,11 @@ sandbox/                                  # 개발 테스트용 (gitignore)
 워크스페이스 레포에서 `cd` 후 실행:
 
 - `/new-planning <노션-티켓-URL>` — 1~5단계 전체 파이프라인(인입→리서치 병렬→PRD→SDD)
-- 단계별: `/intake` `/domain-study` `/tech-research` `/prd` `/sdd`
+- 단계별 순서(각 커맨드는 완료 시 다음 단계를 제안):
+  - 레거시: `/intake` → `/domain-study` → `/tech-research` → `/prd` → (게이트 통과 시) `/sdd`
+  - 신규: `/intake` → `/reference-research` → `/tech-research` → `/prd` → (게이트 통과 시) `/sdd`
+  - 혼합: 3단계에서 `/domain-study` + `/reference-research` 둘 다 수행 후 `/tech-research`로.
+  - **불변식**: 3단계 리서치(domain/reference)만 끝내고 `/prd`로 직행하지 않는다. `/prd` 진입 시 `research/tech-research.md` 부재면 게이트가 멈추고 사용자에게 확인(단순 건은 명시적 생략 허용).
 
 산출물: `engagements/<slug>/` 아래 `00-project-brief.md`, `research/{domain-study,tech-research}.md`, `PRD.md`, `SDD.md`. 레거시 지식베이스는 워크스페이스 공용 `.planning/knowledge-base/`(policy-registry/entity-glossary/source-manifest, `raw/`는 gitignore).
 
