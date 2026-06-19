@@ -132,7 +132,8 @@ Skill과 Sub-agent는 경쟁이 아니라 **축이 다르다**. "둘 다 만들�
 - **커맨드 추가**: `plugins/product-planning/commands/<name>.md` (frontmatter `description`+`argument-hint`).
 - **검증(E2E)**: 워크스페이스에서 실제(또는 과거) 티켓으로 `/new-planning` 실행 → 과거 사람 작성 PRD/SDD와 비교해 템플릿·프롬프트 보정.
 - **버전**: `plugin.json`+`marketplace.json`의 `version` 동시 갱신(SemVer). 자세한 기여 규칙은 `CONTRIBUTING.md`.
-- **커밋/푸시**: 사용자가 요청할 때만. push 원격은 아직 없음(사용자가 GitHub 연결 예정).
+- **커밋/푸시**: 사용자가 요청할 때만. 원격은 `origin` → `github.com/reuskimsugnmin/myJob-planning-automation` (main 추적).
+- **main 브랜치 정책**: main에 **PR 필수 룰셋**이 걸려 있으나 **레포 소유자(사용자)는 bypass 허용** → 소유자는 main에 직접 push-merge, **팀 동료는 PR 리뷰를 거쳐야** 머지된다. 따라서 사용자가 커밋·푸시를 요청하면 main 직접 푸시가 정상 동작이다(bypass). 팀 동료 기여 흐름을 다룰 때만 브랜치→PR을 따른다.
 
 ## 10. 현황 · 로드맵
 
