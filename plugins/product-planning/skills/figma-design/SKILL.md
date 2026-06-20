@@ -63,7 +63,7 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
 ## C. 표준 화면 골격 (++Top / Body / ++Bottom — 고정 영역 그룹핑)
 화면은 **상단 고정(++Top) · 스크롤 콘텐츠(Body) · 하단 고정(++Bottom)** 3영역으로 나눈다. 상·하단 고정 영역은 콘텐츠와 **별도 프레임으로 그룹핑**한다(평면으로 흩지 않는다 — 운영 레이어 컨벤션).
 - **`++Top`(모든 화면 필수, 화면 최상단 고정 프레임):** `Notch`/`UI/Status Bar` + TopAppBar(`header/main` 등). 세로 auto-layout `++Top` 1개로 묶는다.
-- **`Body`(스크롤 콘텐츠):** (제목 필요 시) `title/24_16` 등 공통 타이틀 컴포넌트 + 입력/콘텐츠 영역. 제목·입력은 **raw TEXT 금지** — DS 컴포넌트 인스턴스로(§L). 각 요소는 실제 컴포넌트. **좌우 콘텐츠 거터 = 24**(운영 기준, 레퍼런스 Container x=24). 고정 헤더/풋터 DS 컴포넌트는 자체 패딩을 따른다.
+- **`Body`(스크롤 콘텐츠):** (제목 필요 시) `title/24_16` 등 공통 타이틀 컴포넌트 + 입력/콘텐츠 영역. 제목·입력은 **raw TEXT 금지** — DS 컴포넌트 인스턴스로(§L). 각 요소는 실제 컴포넌트. **좌우 콘텐츠 거터 = 24**(운영 기준, 레퍼런스 Container x=24). 고정 헤더/풋터 DS 컴포넌트는 자체 패딩을 따른다. ★ Body가 auto-layout이면 거터는 **`paddingLeft/Right=24`** 로 주고 구조 자식은 **`layoutSizingHorizontal='FILL'`**(고정폭 좌측정렬은 좌우 비대칭 거터를 만든다 — 자식 `.x`만 바꾸면 Figma가 ABSOLUTE로 전환돼 거터가 어긋남). **`content`/`Agreement` 같은 콘텐츠 프레임은 ABSOLUTE 금지 → Body 자식으로 in-flow(`layoutPositioning='AUTO'`) + `FILL`**(거터는 Body padding, 세로 위치는 gap). 정본 예시 `383:3923`.
 - **`++Bottom`(하단 고정 프레임, 1차 액션·내비 화면):** 화면 최하단에 고정되는 영역을 하나의 `++Bottom` 프레임으로 묶는다. 구성: **1차 액션 CTA `btn54_main_set`(풀폭)** + 하단 시스템 바(`UI/Navigation Bar`/`Home Indicator`). CTA만 있고 내비가 없으면 CTA + Home Indicator. 목록·홈 유형은 탭 `Navigation Bar`.
 - 인식 규칙: ⓐ 모든 화면 = `++Top` + (하단 고정 필요 시) `++Bottom` ⓑ 제목 화면 = Body에 `title/24_16` ⓒ "선택→다음/구매/확인" 1차 액션 화면 = `++Bottom`에 `btn54_main_set`.
 - 참조 정본: HPDS 예시 화면 `app_loan_012`(`NbiTRVYBbGXf3PyBMwxYs1` 36146:106685) = Top Module + title + `use_form` 리스트 / 하단 `btn54_main_set` + Home Indicator. 같은 유형 화면은 이 구조를 따른다.
@@ -124,7 +124,7 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
 
 ## L. 컴포넌트 매칭 (필드 → DS 컴포넌트, bespoke 금지)
 같은 의미의 UI는 **DS의 전용 컴포넌트**로 짓는다 — 입력/선택/라벨/바텀 액션을 직접 도형·텍스트로 조립하지 않는다(§D 우선순위의 구체화). 반복 오버레이·안내·상세블록은 §M 픽스 컴포넌트 카탈로그의 정본 clone.
-- **입력·선택·필드 라벨 = `use_form` 합성 컴포넌트**(HPDS key `f1df80617cffbbb72a113fc1f6e4e4b8b002e226`). `use_form`은 **상위 타이틀(라벨) + 입력 필드 + 안내/에러 메시지**를 한 묶음으로 제공하는 공통 패턴이다. 필드 위 라벨도 raw TEXT가 아니라 use_form의 타이틀로(인풋 상위 타이틀 공통 적용). 안쪽 입력은 `EL_input/*` variant(default/typing/end/disabled/error), 텍스트형(이름)·휴대폰·이메일·금액·select(통신사/국가)는 안쪽 입력·boolean 토글로 구성.
+- **입력·선택·필드 라벨 = `use_form` 합성 컴포넌트**(HPDS key `f1df80617cffbbb72a113fc1f6e4e4b8b002e226`). `use_form`은 **상위 타이틀(라벨) + 입력 필드 + 안내/에러 메시지**를 한 묶음으로 제공하는 공통 패턴이다. 필드 위 라벨도 raw TEXT가 아니라 use_form의 타이틀로(인풋 상위 타이틀 공통 적용). 안쪽 입력은 `EL_input/*` variant(default/typing/end/disabled/error). **select(통신사/국가 등)** 는 정본 select use_form `448:5318`(안쪽 `EL_Select_Flag`)을 clone — **셰브론(▼)은 내장**이라 bespoke `▾` 텍스트 금지. 국가가 아니면 `-아이콘#34811:13=false`(앞 국기 off) + 채워진 값의 `flag_ellipse` 노드 `visible=false`. 텍스트형(이름)·휴대폰·이메일·금액은 일반 `EL_input`.
 - **★ use_form은 프로퍼티가 수십 개(boolean/swap/text)라 0부터 구성하면 오류가 잦다 → 정본 인스턴스를 clone.** DS 레퍼런스 예시(`app_loan_012` 등)나 이미 올바르게 구성된 화면의 use_form 인스턴스를 `clone()`해 **텍스트(타이틀·placeholder·안내)와 visible만 오버라이드**한다. 주요 프로퍼티: `타이틀#…`(라벨 표시) · `Show EL_input/Default#…`(입력 표시) · `essential#…`(필수 닷) · `error_message#…`/`Information_message#…`(메시지 표시) · `sub_title#…`(서브 라벨 텍스트). 타이틀 텍스트는 내부 `Title Text` 노드 직접 오버라이드.
 - **바텀 고정 1차 액션 = `btn54_main_set`**(key `8ed6cf4ff1be3524b921d89b0090389d9d5f9969`, 풀폭). `++Bottom` 프레임 안에서 `UI/Navigation Bar`/`Home Indicator` 위에 얹는다(§C). 변형 `Property 1`: `Default`(활성)·`disabled`(비활성)·`sub`·`icon+btn54`. 라벨은 `Text#35060:3`. raw 버튼·`btn60` 직접 사용 금지.
 - **DS에 매칭 컴포넌트가 없으면**: 직접 그리되 ① 비슷한 스타일로 정리하고 ② **활용 가능한 DS 패턴(인풋 상위 타이틀·라벨·헬프텍스트 등)은 공통 적용**하며 ③ 색·타이포는 §K로 토큰 바인딩. 그래도 핵심 컴포넌트가 없으면 §H처럼 사용자에게 소스 확인.
@@ -147,6 +147,7 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
 
 - **★ clone-override 함정 2종(인포박스·M-8 등 가변 높이 컴포넌트에서 자주).** ① **불필요한 `setProperties` 금지** — 정본 인스턴스는 이미 원하는 variant·높이로 collapse돼 있는데, 같은 variant라도 `setProperties(Type=…)`를 호출하면 **메인 컴포넌트 기본 상태(모든 줄 노출·큰 높이)로 리셋**된다(예: red 인포박스가 60→380px). variant 변경이 꼭 필요할 때만 호출하고, 텍스트는 **렌더되는 TEXT 노드를 직접** 세팅(프로퍼티가 보이는 노드에 안 묶여 있을 수 있음). ② **auto-layout 부모에 append 시 `layoutGrow`/`layoutAlign`/`layoutSizingHorizontal` 점검** — 컴포넌트가 `layoutGrow=1`이면 **세로 auto-layout 부모에 들어가는 순간 세로를 꽉 채워 부풀어 깨진다**(결과·빈상태 화면 Body, 폼 content 모두 VERTICAL auto-layout인 경우 많음). append 후 **가변높이 컴포넌트는 `layoutGrow=0` + `counterAxisSizingMode='AUTO'`(높이 hug)**, 절대배치 필요 시 `layoutPositioning='ABSOLUTE'`. **auto-layout content 안 구성 자식은 width를 `layoutSizingHorizontal='FILL'`로 통일**(use_form·인포박스 등 — FIXED 폭이면 반응형 깨짐). 부모 content는 가능하면 `primaryAxisSizingMode='AUTO'`(height hug)로 spare 세로여백 제거(grow가 채울 여백 자체를 없앰).
 - **오버레이(M-3·M-4·M-5)는 별도 풀스크린 화면이 아니라 트리거 화면 위 오버레이**다 → 스토리보드에선 **트리거 화면 옆 상태 프레임**으로 둔다(상세케이스 방식, `storyboard-build` §6). 디스크립션에 **트리거(어디서 열리나)·복귀 경로**를 명시(`design-description`).
+- **오버레이 배지 = parent + 액션 하위배지**(`design-description` §4-e): 오버레이에 **다음 정수 배지(parent)**, 내부 **액션 요소(버튼·항목·닫기)마다 하위 배지 Na/Nb**. ★ 닫기/바깥탭도 오버레이마다 "배지 1"을 또 달지 말 것 — 그 오버레이의 하위 배지(예 5b)로(과거 중복·고아 사고). base 트리거 요소엔 `→ (N)` 포인터.
 - **안내 문구는 raw TEXT/캡션이 아니라 M-6 인포박스**로(평문 안내 금지, §H 정신). 부정/주의=red, 긍정/완료=blue, 중립 안내=gray.
 - **결과 화면의 상세 데이터는 M-7 `ui/detail`**로(bespoke 요약 카드 금지). §C-결과 ③과 동일.
 
