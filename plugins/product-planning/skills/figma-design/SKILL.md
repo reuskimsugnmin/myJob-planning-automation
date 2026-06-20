@@ -68,6 +68,13 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
 - 인식 규칙: ⓐ 모든 화면 = `++Top` + (하단 고정 필요 시) `++Bottom` ⓑ 제목 화면 = Body에 `title/24_16` ⓒ "선택→다음/구매/확인" 1차 액션 화면 = `++Bottom`에 `btn54_main_set`.
 - 참조 정본: HPDS 예시 화면 `app_loan_012`(`NbiTRVYBbGXf3PyBMwxYs1` 36146:106685) = Top Module + title + `use_form` 리스트 / 하단 `btn54_main_set` + Home Indicator. 같은 유형 화면은 이 구조를 따른다.
 
+### C-결과. 결과/상태 화면 패턴 (완료·실패·처리중·빈 결과 공통)
+종료성 결과·상태 화면(가입 완료/실패, 처리중, 빈 결과 등)은 입력 화면과 달리 **중앙 정렬 결과 패턴**을 공통으로 쓴다(정본 HPDS `36146:104635`):
+- **Top**: Notch(+ 해당 시 header/main 백/X). 종료 화면이라 헤더 없는 경우도 많음.
+- **Content(중앙)**: ① **Icon 일러스트(대, ~240×154)** = HPDS **`Glassmorphism` 셋**(상태 글래스 일러스트, set key `1914373c1111750bc38d04c20f15e64de1f60897`) variant — **완료=`Pass_Image`(`514f2…`) · 처리중/대기=`wait_Image`(시계, `4e22f…`) · 실패=`error`(`075eb…`)**. ⚠️ DS 일러스트가 미퍼블리시면 import 실패 → 사용자에게 **라이브러리 게시 요청**(§H, 직접 그리지 말 것). ② **Message** = **타이틀**(결과 카피, `Title/H4_B_18`) + **서브 상태**(primary `Body/P3_M_14`, 예 "처리 중"·"가입 완료") + **본문 안내**(gray600 `Body/P3_R_14`, 멀티라인). ③ (선택) **요약 블록** — 결과에 핵심 데이터(계좌·금액·일자 등)가 있으면 Message 아래 요약 카드로.
+- **Footer(=++Bottom 고정)**: (선택) 불릿 **보조 안내** + **`btn54_main_set`** CTA + **Home Indicator**. 2개 액션이면 btn54 Default + sub.
+- 인식 규칙: 화면이 "사용자 입력 없이 결과/상태를 보여주고 한두 개 액션으로 빠져나가는" 유형이면 이 패턴. 처리중은 Icon=로딩, 액션 없음(Footer 생략 가능).
+
 ## D. 조립 — clone vs 라이브러리 (채택 우선순위)
 1. **기성 composite/section 컴포넌트** 그대로(`importComponentByKeyAsync`→`createInstance`). ← 최우선. 연결 라이브러리는 `search_design_system`(includeLibraryKeys로 한정)·`get_libraries` 로 수집, 페이지 로컬은 `findAllWithCriteria({types:['COMPONENT','COMPONENT_SET']})`.
 2. 없으면 **atom**(행·텍스트·아이콘·칩)으로 Auto Layout 조립.

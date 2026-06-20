@@ -17,7 +17,9 @@ description: Figma 스토리보드 화면에 한국어 기획 디스크립션을
 
 디자인 **정수 뱃지 N** = Description **annotation-frame N**. annotation N의 제목·본문은 **뱃지 N이 화면에서 가리키는 바로 그 UI 요소**를 설명한다. 개수만 맞추는 게 아니라 **무엇을 가리키는지**가 맞아야 한다(개수 OK인데 의미 어긋남이 가장 잦은 결함).
 
-Description 프레임 구조(운영 양식): `Description > annotation-frame × N`. 각 `annotation-frame` 은 텍스트 3개 — **노드명 고정**: `"1"`(뱃지 번호) · `"Section Title.."`(제목) · `"Lorem ipsum..."`(본문). 새 annotation-frame 을 만들 때도 이 노드명·구조를 그대로 따른다.
+Description 프레임 구조(운영 양식): `Description > [헤더 내비 프리앰블] + annotation-frame × N`. 각 `annotation-frame` 은 텍스트 3개 — **노드명 고정**: `"1"`(뱃지 번호) · `"Section Title.."`(제목) · `"Lorem ipsum..."`(본문). 새 annotation-frame 을 만들 때도 이 노드명·구조를 그대로 따른다.
+
+**헤더 내비 = 배지 1(모든 화면 최상단 상시 · 정식 annotation, 별도 텍스트 프리앰블 금지).** `header/main`의 **백버튼(⬅)·X버튼(✕)** 도 다른 요소처럼 **번호 배지로 편입**한다 — **배지 1**: 화면 SECTION의 백/X 버튼 위치(좌상단)에 `label-group` 배지 1 + Description 최상단에 정본 `annotation-frame`(clone) 배지 1(제목=`뒤로 가기`/`닫기`, 본문=역할문 + `[Action]` 경로 `- ⬅ 뒤로 → {이전화면}`). **기존 콘텐츠 배지·annotation은 +1 재번호**(reading order 상단 우선). 헤더 없는 종료 화면도 배지 1 = `헤더 내비`(본문 `종료 화면·헤더 미노출`). **카운트 불변식(annotation N == 정수 배지 N)은 그대로**(헤더 내비가 배지 1로 정식 편입되므로 예외 아님). ★ raw 텍스트 블록으로 넣지 말 것 — 정본 annotation-frame clone.
 
 ### 0-A. 정본 구조 불변식 (재발 방지 — 반드시 준수)
 > 과거 사고: 디스크립션을 정본 템플릿 clone 없이 **임의의 새 패널로 발명**했고, 그 전에 "lo-fi 잔재" 정리 중 디스크립션 구조가 붙은 SECTION을 **삭제**해 과거 픽스를 날릴 뻔했다. 아래를 반드시 지킨다.
@@ -73,7 +75,7 @@ Description 프레임 구조(운영 양식): `Description > annotation-frame × 
 - **경계**: UI 상태·인터랙션·카피·검증 시점은 여기, **데이터/API 계약은 SDD**(`sdd-author`+`tech-registry`). 디스크립션은 SDD를 링크만.
 
 ## 5. 작성 검증 (2단계 — 둘 다 필수)
-- **(A) 개수**: `annotation-frame 수 == 정수 뱃지 수`. 각 서브 Na는 부모 N 본문에 `(Na)` 줄 존재.
+- **(A) 개수**: `annotation-frame 수 == 정수 뱃지 수`(헤더 내비 배지 1 포함 — 정식 배지). 각 서브 Na는 부모 N 본문에 `(Na)` 줄 존재. **모든 화면 Description 최상단 annotation = 배지 1 헤더 내비**인지 확인.
 - **(B) 의미(누락 잦음)**: 각 뱃지 좌표 **최근접 요소 == annotation 제목**인지 `get_screenshot` 교차검증. 다르면 정정. 개수만 맞고 헤더↔카드가 뒤바뀐 통과를 막는다.
 - 자동 판정 가능한 것(개수·서브 접힘·`[개요]` 잔존·인라인 라벨)은 스크립트로, 의미(제목=대상)는 `semantic` 표 + 스크린샷으로 사람이 대조.
 
