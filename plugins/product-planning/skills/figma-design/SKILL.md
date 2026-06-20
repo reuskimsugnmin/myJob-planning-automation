@@ -63,7 +63,7 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
 ## C. 표준 화면 골격 (++Top / Body / ++Bottom — 고정 영역 그룹핑)
 화면은 **상단 고정(++Top) · 스크롤 콘텐츠(Body) · 하단 고정(++Bottom)** 3영역으로 나눈다. 상·하단 고정 영역은 콘텐츠와 **별도 프레임으로 그룹핑**한다(평면으로 흩지 않는다 — 운영 레이어 컨벤션).
 - **`++Top`(모든 화면 필수, 화면 최상단 고정 프레임):** `Notch`/`UI/Status Bar` + TopAppBar(`header/main` 등). 세로 auto-layout `++Top` 1개로 묶는다.
-- **`Body`(스크롤 콘텐츠):** (제목 필요 시) `title/24_16` 등 공통 타이틀 컴포넌트 + 입력/콘텐츠 영역. 제목·입력은 **raw TEXT 금지** — DS 컴포넌트 인스턴스로(§L). 각 요소는 실제 컴포넌트.
+- **`Body`(스크롤 콘텐츠):** (제목 필요 시) `title/24_16` 등 공통 타이틀 컴포넌트 + 입력/콘텐츠 영역. 제목·입력은 **raw TEXT 금지** — DS 컴포넌트 인스턴스로(§L). 각 요소는 실제 컴포넌트. **좌우 콘텐츠 거터 = 24**(운영 기준, 레퍼런스 Container x=24). 고정 헤더/풋터 DS 컴포넌트는 자체 패딩을 따른다.
 - **`++Bottom`(하단 고정 프레임, 1차 액션·내비 화면):** 화면 최하단에 고정되는 영역을 하나의 `++Bottom` 프레임으로 묶는다. 구성: **1차 액션 CTA `btn54_main_set`(풀폭)** + 하단 시스템 바(`UI/Navigation Bar`/`Home Indicator`). CTA만 있고 내비가 없으면 CTA + Home Indicator. 목록·홈 유형은 탭 `Navigation Bar`.
 - 인식 규칙: ⓐ 모든 화면 = `++Top` + (하단 고정 필요 시) `++Bottom` ⓑ 제목 화면 = Body에 `title/24_16` ⓒ "선택→다음/구매/확인" 1차 액션 화면 = `++Bottom`에 `btn54_main_set`.
 - 참조 정본: HPDS 예시 화면 `app_loan_012`(`NbiTRVYBbGXf3PyBMwxYs1` 36146:106685) = Top Module + title + `use_form` 리스트 / 하단 `btn54_main_set` + Home Indicator. 같은 유형 화면은 이 구조를 따른다.
@@ -71,7 +71,7 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
 ### C-결과. 결과/상태 화면 패턴 (완료·실패·처리중·빈 결과 공통)
 종료성 결과·상태 화면(가입 완료/실패, 처리중, 빈 결과 등)은 입력 화면과 달리 **중앙 정렬 결과 패턴**을 공통으로 쓴다(정본 HPDS `36146:104635`):
 - **Top**: Notch(+ 해당 시 header/main 백/X). 종료 화면이라 헤더 없는 경우도 많음.
-- **Content(중앙)**: ① **Icon 일러스트(대, ~240×154)** = HPDS **`Glassmorphism` 셋**(상태 글래스 일러스트, set key `1914373c1111750bc38d04c20f15e64de1f60897`) variant — **완료=`Pass_Image`(`514f2…`) · 처리중/대기=`wait_Image`(시계, `4e22f…`) · 실패=`error`(`075eb…`)**. ⚠️ DS 일러스트가 미퍼블리시면 import 실패 → 사용자에게 **라이브러리 게시 요청**(§H, 직접 그리지 말 것). ② **Message** = **타이틀**(결과 카피, `Title/H4_B_18`) + **서브 상태**(primary `Body/P3_M_14`, 예 "처리 중"·"가입 완료") + **본문 안내**(gray600 `Body/P3_R_14`, 멀티라인). ③ (선택) **요약 블록** — 결과에 핵심 데이터(계좌·금액·일자 등)가 있으면 Message 아래 요약 카드로.
+- **Content(중앙)**: ① **Icon 일러스트(대, ~240×154)** = HPDS **`Glassmorphism` 셋**(상태 글래스 일러스트, set key `1914373c1111750bc38d04c20f15e64de1f60897`) variant — **완료=`Pass_Image`(`514f2…`) · 처리중/대기=`wait_Image`(시계, `4e22f…`) · 실패=`error`(`075eb…`)**. ⚠️ DS 일러스트가 미퍼블리시면 import 실패 → 사용자에게 **라이브러리 게시 요청**(§H, 직접 그리지 말 것). ② **Message**(정본 `409:6524`/Message `409:6526`, center·gap16) = **Message Container**(center·gap12) [ **타이틀**(결과 카피, **`Title/H1_B_24`**·`gray700_text_end`) + **서브타이틀**(상태, **`Title/H4_B_18`**·`primary500`, 예 "처리 중"·"가입 완료") ] + **본문 안내**(gray600 `Body/P3_R_14`, center·멀티라인). ③ (선택) **요약/상세 블록** — 결과에 핵심 데이터(계좌·금액·일자 등)가 있으면 Message 아래에 **`ui/detail`(§M-7)** 라벨+값 행으로(bespoke 카드 금지).
 - **Footer(=++Bottom 고정)**: (선택) 불릿 **보조 안내** + **`btn54_main_set`** CTA + **Home Indicator**. 2개 액션이면 btn54 Default + sub.
 - 인식 규칙: 화면이 "사용자 입력 없이 결과/상태를 보여주고 한두 개 액션으로 빠져나가는" 유형이면 이 패턴. 처리중은 Icon=로딩, 액션 없음(Footer 생략 가능).
 
@@ -123,12 +123,32 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
 - **검증**: 작업 노드에 `get_variable_defs`(색) + 각 TEXT의 `textStyleId`(타이포) 확인 → 손작업 텍스트/도형이 DS 변수·스타일로 잡히는지(raw hex/raw 폰트 잔존 0). 안 잡히면 미바인딩.
 
 ## L. 컴포넌트 매칭 (필드 → DS 컴포넌트, bespoke 금지)
-같은 의미의 UI는 **DS의 전용 컴포넌트**로 짓는다 — 입력/선택/라벨/바텀 액션을 직접 도형·텍스트로 조립하지 않는다(§D 우선순위의 구체화).
+같은 의미의 UI는 **DS의 전용 컴포넌트**로 짓는다 — 입력/선택/라벨/바텀 액션을 직접 도형·텍스트로 조립하지 않는다(§D 우선순위의 구체화). 반복 오버레이·안내·상세블록은 §M 픽스 컴포넌트 카탈로그의 정본 clone.
 - **입력·선택·필드 라벨 = `use_form` 합성 컴포넌트**(HPDS key `f1df80617cffbbb72a113fc1f6e4e4b8b002e226`). `use_form`은 **상위 타이틀(라벨) + 입력 필드 + 안내/에러 메시지**를 한 묶음으로 제공하는 공통 패턴이다. 필드 위 라벨도 raw TEXT가 아니라 use_form의 타이틀로(인풋 상위 타이틀 공통 적용). 안쪽 입력은 `EL_input/*` variant(default/typing/end/disabled/error), 텍스트형(이름)·휴대폰·이메일·금액·select(통신사/국가)는 안쪽 입력·boolean 토글로 구성.
 - **★ use_form은 프로퍼티가 수십 개(boolean/swap/text)라 0부터 구성하면 오류가 잦다 → 정본 인스턴스를 clone.** DS 레퍼런스 예시(`app_loan_012` 등)나 이미 올바르게 구성된 화면의 use_form 인스턴스를 `clone()`해 **텍스트(타이틀·placeholder·안내)와 visible만 오버라이드**한다. 주요 프로퍼티: `타이틀#…`(라벨 표시) · `Show EL_input/Default#…`(입력 표시) · `essential#…`(필수 닷) · `error_message#…`/`Information_message#…`(메시지 표시) · `sub_title#…`(서브 라벨 텍스트). 타이틀 텍스트는 내부 `Title Text` 노드 직접 오버라이드.
 - **바텀 고정 1차 액션 = `btn54_main_set`**(key `8ed6cf4ff1be3524b921d89b0090389d9d5f9969`, 풀폭). `++Bottom` 프레임 안에서 `UI/Navigation Bar`/`Home Indicator` 위에 얹는다(§C). 변형 `Property 1`: `Default`(활성)·`disabled`(비활성)·`sub`·`icon+btn54`. 라벨은 `Text#35060:3`. raw 버튼·`btn60` 직접 사용 금지.
 - **DS에 매칭 컴포넌트가 없으면**: 직접 그리되 ① 비슷한 스타일로 정리하고 ② **활용 가능한 DS 패턴(인풋 상위 타이틀·라벨·헬프텍스트 등)은 공통 적용**하며 ③ 색·타이포는 §K로 토큰 바인딩. 그래도 핵심 컴포넌트가 없으면 §H처럼 사용자에게 소스 확인.
 - **교체 시 옛 bespoke는 삭제가 아니라 `visible=false`로 숨김**(추적·복구용, 보호 레이어 원칙). 숨긴 노드는 렌더되지 않아 이중 테두리 없음(§F).
+
+## M. 공통 픽스 컴포넌트 카탈로그 (반복 패턴 = 정본 1벌)
+자주 쓰는 오버레이·블록·안내는 매번 새로 만들지 말고 **아래 정본 인스턴스를 clone**한다(use_form과 동일 원칙 — §L). 정본은 작업 파일 `J483aVvinTZn5OHSdCAiE8`의 레퍼런스 페이지(음수 X 영역)에 인스턴스로 있고 HPDS DS 컴포넌트가 백킹한다. **clone 후 텍스트·visible·variant만 오버라이드**, 색·타이포는 §K 토큰 유지, 옛 bespoke는 `visible=false`(§L).
+- 적용 시점에 정본 노드가 옮겨졌으면 `search_design_system`(컴포넌트명)으로 DS 컴포넌트를 직접 import. 정본 노드 ID는 같은 파일 내 빠른 clone 소스다.
+
+| # | 용도 | 정본 노드 | 핵심 구조 / 컴포넌트 | 적용 |
+| --- | --- | --- | --- | --- |
+| M-1 | 레이아웃 좌우 마진 | — | — | body 콘텐츠 거터 **24**(§C). 고정 헤더/풋터 제외 |
+| M-2 | 결과(완료·실패·대기) 타이틀+서브 | `409:6524`(Message `409:6526`) | Message(center·gap16) = Container(gap12)[타이틀 `Title/H1_B_24`·gray700 + 서브 `Title/H4_B_18`·primary500] + 본문 `Body/P3_R_14`·gray600 | §C-결과 |
+| M-3 | 셀렉트 박스 → 리스트 | `409:6368` | `BottomSheet` = Container[header(Close `icon24` + `Title`) + **`EL_bottom_sheet/셀렉트기본`(`409:6376`)**] + Gradient + Home Indicator | 모든 select(통신사·국가·옵션) 탭 시 공통 |
+| M-4 | 세부 안내 시트 | `409:5707`(BottomSheet `409:5708`) | 아이콘+타이틀 헤더 + STEP 본문 블록 + 하단 버튼 | "자세히/이용안내" 등 상세 가이드 |
+| M-5 | 컨펌·서버에러 팝업 | `409:5709`(Popup `409:5711` > `Popup Content` `409:5712`) | 본문 텍스트 + 취소/확인 2버튼(307 폭) | 실행 전 확인 다이얼로그 **및 서버 응답 에러** |
+| M-6 | 안내 인포박스 | `409:5877`(`notification`) | 아이콘(`ico20/info2`)+텍스트, radius12·pad16/12 | 안내 문구. variant 색: **red=부정·blue=긍정·gray=안내** |
+| M-7 | 결과 상세 내역 | `409:5534`(`ui/detail`) | 라벨+값 행 + divider, bg `03(f4f7fd)`·radius12 | 완료/실패/대기에 핵심 데이터(계좌·금액 등). 강조값 primary |
+| M-8 | 빈 상태(empty) | `409:6567`(`Frame 1597884660`) | 아이콘 + 안내 타이틀(+선택 서브/CTA), VERTICAL | 리스트/검색 결과 없음. 컨텐츠 영역 중앙 배치, 타이틀만 교체 |
+
+- **★ clone-override 함정 2종(인포박스·M-8 등 가변 높이 컴포넌트에서 자주).** ① **불필요한 `setProperties` 금지** — 정본 인스턴스는 이미 원하는 variant·높이로 collapse돼 있는데, 같은 variant라도 `setProperties(Type=…)`를 호출하면 **메인 컴포넌트 기본 상태(모든 줄 노출·큰 높이)로 리셋**된다(예: red 인포박스가 60→380px). variant 변경이 꼭 필요할 때만 호출하고, 텍스트는 **렌더되는 TEXT 노드를 직접** 세팅(프로퍼티가 보이는 노드에 안 묶여 있을 수 있음). ② **auto-layout 부모에 append 시 `layoutGrow`/`layoutAlign`/`layoutSizingHorizontal` 점검** — 컴포넌트가 `layoutGrow=1`이면 **세로 auto-layout 부모에 들어가는 순간 세로를 꽉 채워 부풀어 깨진다**(결과·빈상태 화면 Body, 폼 content 모두 VERTICAL auto-layout인 경우 많음). append 후 **가변높이 컴포넌트는 `layoutGrow=0` + `counterAxisSizingMode='AUTO'`(높이 hug)**, 절대배치 필요 시 `layoutPositioning='ABSOLUTE'`. **auto-layout content 안 구성 자식은 width를 `layoutSizingHorizontal='FILL'`로 통일**(use_form·인포박스 등 — FIXED 폭이면 반응형 깨짐). 부모 content는 가능하면 `primaryAxisSizingMode='AUTO'`(height hug)로 spare 세로여백 제거(grow가 채울 여백 자체를 없앰).
+- **오버레이(M-3·M-4·M-5)는 별도 풀스크린 화면이 아니라 트리거 화면 위 오버레이**다 → 스토리보드에선 **트리거 화면 옆 상태 프레임**으로 둔다(상세케이스 방식, `storyboard-build` §6). 디스크립션에 **트리거(어디서 열리나)·복귀 경로**를 명시(`design-description`).
+- **안내 문구는 raw TEXT/캡션이 아니라 M-6 인포박스**로(평문 안내 금지, §H 정신). 부정/주의=red, 긍정/완료=blue, 중립 안내=gray.
+- **결과 화면의 상세 데이터는 M-7 `ui/detail`**로(bespoke 요약 카드 금지). §C-결과 ③과 동일.
 
 ## 원칙
 - 출처 없는 단정 금지. 전략적 UX 배치는 `⛳DECISION` 으로 표시하고 옵션·추천만 제시(사람 결정).
