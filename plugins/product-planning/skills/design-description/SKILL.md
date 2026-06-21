@@ -109,6 +109,7 @@ Description write 작업은 **디자인 동기화까지 완료해야 작업 완�
 - **★ 마감 = 리플로우 자동 실행(필수 게이트).** 디스크립션을 편집했으면 Description 높이가 바뀌므로, 작업을 끝내기 전 **`figma-design` §A 자동 발견 리플로우 루틴을 항상 실행**한다(SB 카드 height 리사이즈 + 전 행 Y cascade, 겹침 0). 사용자가 따로 요청하지 않아도 자동. 리플로우 매칭 카운트를 보고에 포함.
   - **Description은 반드시 `primaryAxisSizingMode='AUTO'`(콘텐츠 hug)** — FIXED면 주석 텍스트 증가 시 조용히 오버플로해 아래 행 침범(실패 사례 e05: 697 frame에 1204 콘텐츠). 편집 후 AUTO 확인.
   - **완료 조건 = bbox 교차 0을 `absoluteBoundingBox`+자식 콘텐츠 extent로 확인**(`node.height` 금지 — FIXED 오버플로를 못 본다. `storyboard-build` §8 스니펫). 격리 스크린샷은 겹침을 숨기므로 좌표로 검증.
+  - **리플로우 직후 `storyboard-build` §9 자동 마감 검수 게이트(7항목)를 이어서 실행**한다(사용자 요청 불필요). 디스크립션 편집은 #3·#4(배지↔디스크립션·양식)와 #5(엣지케이스→디자인 존재)를 건드리므로 검수 리포트로 누락을 드러낸다.
 
 ## 8. 실패 모드 체크리스트
 - [ ] **대상 페이지의 모든 SECTION 화면**에 Descriptions/뱃지 존재(일부만 처리 = 미완료, 미처리 목록 보고)

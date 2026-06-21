@@ -8,12 +8,13 @@ description: PRD/SDD를 Figma 스토리보드·low/mid-fi 디자인으로 실현
 워크플로우 8~11단계. **PRD를 디자인으로 실현**하는 오케스트레이션 스킬.
 원리: **디자인을 PRD대로 먼저 실현(③) → 눈으로 검증(④) → 그 디자인을 보고 디스크립션(`design-description`).** ②③을 건너뛰고 디스크립션만 쓰면 PRD가 화면에 안 들어간다.
 
-### 디자인 4단계 워크플로우 (전체 라이프사이클)
-화면은 한 번에 끝나지 않는다. 아래 4단계를 순서대로 돈다(③④는 디스크립션 후 추가 패스):
-1. **디자인 생성** — 해피패스 화면을 PRD대로 실현(이 스킬 §0~§5).
+### 디자인 4단계 워크플로우 (전체 라이프사이클 · 선형 아닌 수렴 루프)
+화면은 한 번에 끝나지 않는다. 아래를 돈다(③④는 디스크립션 후 추가 패스):
+1. **디자인 생성** — 해피패스 화면을 PRD대로 실현(이 스킬 §0~§5). **§0에서 요소→목적지 화면·요소→상태/엣지를 먼저 못박는다**(끝에서 메우면 가장 비쌈).
 2. **디스크립션 작성** — 완성 화면을 보고 dev-detailed 디스크립션 + 동기화(`design-description`).
-3. **상세 케이스 화면화 (§6)** — 디스크립션의 `[상태]`/`[엣지·예외]`/`[연동] 분기`에서 **의미있는 분기만**(에러·empty·valid·로딩) 추가 화면 행으로 실현. focus 등 미세 상태는 컴포넌트 variant로만 표현(개별 화면 X).
-4. **최종 3자 매칭 (§7)** — 뱃지 ↔ 디스크립션 ↔ 디자인이 서로 일치하는지 전 행(신규 상세-케이스 포함) 대조·확정.
+3. **상세 케이스 화면화 (§6)** — 디스크립션의 `[상태]`/`[엣지·예외]`/`[연동] 분기`에서 **의미있는 분기만**(에러·empty·valid·로딩) 추가 화면 행으로 실현. focus 등 미세 상태는 컴포넌트 variant로만(개별 화면 X).
+4. **최종 3자 매칭 (§7)** — 뱃지 ↔ 디스크립션 ↔ 디자인 일치 전 행 대조·확정.
+5. **자동 마감 검수 게이트 (§9)** — 7항목 audit. **#5·#6이 누락 화면을 드러내면 ②③①로 되먹임**(수렴 루프) 후 재배지·재디스크립션·재검수. 디스크립션은 빈틈을 드러내는 도구다 — 선형으로 끝내지 말 것.
 
 > Figma "쓰기"의 구체 방법(3세트 구조·골격·clone/조립·swap 결함·심볼·폰트)은 **`figma-design` 스킬** 을 따른다(여기에 복붙하지 않음). 레거시/레퍼런스 화면 "읽기"가 필요하면 `figma-explore`(+대량이면 `research-agent`)를 쓴다. high-fi 고도화·디자인 취향 확정(단계 13)은 사람 몫.
 
@@ -29,6 +30,7 @@ description: PRD/SDD를 Figma 스토리보드·low/mid-fi 디자인으로 실현
 - **흐름 도출**: `PRD.md`의 `B5 UX 흐름·화면 구성`과 각 FR의 `관련 플로우/관련 화면`을 읽어 **엔트리 → 해피패스 각 단계 → 분기 → 종료**를 한 줄 흐름으로 정리. `B5`가 비어 있으면 **멈추고 사용자에게 흐름 보완을 요청**(흐름 없는 화면 생성 금지).
 - **화면 인벤토리 완전성 체크리스트** — 각 항목이 흐름에 있는지 점검하고 누락은 화면으로 추가:
   - [ ] 진입/리스트 화면  [ ] 각 기능 단계(입력·선택·확인)  [ ] **처리중/로딩**  [ ] **실패/에러 분기**  [ ] **완료/결과**  [ ] 빈 상태(empty)  [ ] 권한·본인인증·약관상세 등 게이트 화면
+  - **★ 요소 단위 매핑(§9 #5·#6의 토대 — 끝에서 메우지 않게 여기서 못박는다)**: 각 화면의 **인터랙티브 요소마다 "탭 시 여는 목적지 화면"과 "가질 수 있는 상태/엣지"를 한 줄로 적는다**(검색 인풋→검색/자동완성/결과, 카드→상세, 필터→결과 갱신, 제출→로딩→완료/실패). 목적지·상태가 화면 목록에 없으면 그 자리에서 화면으로 추가. (예: e01 검색 인풋의 결과 화면 누락 = 이 매핑을 건너뛴 결함.)
   - 누락분을 policy-table 화면 목록에 add로 포함. **인벤토리를 사용자에게 제시·확인받은 뒤에만** §3 화면 생성으로 진행.
 - **플로우차트 작도(FigJam)**: `generate_diagram` 로 화면 노드 + 전이(조건 라벨)를 FigJam 흐름도로 생성한다. 노드명 = 화면 ID/이름, 엣지 = 전이 조건(예: `필수입력 완료`, `인증 실패`). 같은 내용을 `engagements/<slug>/design/flow.md` 에 노드·전이 텍스트로 동기 기록(출처: `PRD B5`/`FR-n`). 이 흐름도의 전이는 §화면 실현 후 SECTION 간 커넥터로 옮겨, `design-description` 의 `[플로우]` 읽기와 연결된다.
 
@@ -91,6 +93,42 @@ const E=page.children.filter(c=>c.type==='SECTION'||(c.type==='FRAME'&&c.name===
 let hit=0; for(let i=0;i<E.length;i++)for(let j=i+1;j<E.length;j++){const a=E[i],z=E[j];if(Math.min(a.r,z.r)-Math.max(a.x,z.x)>5 && Math.min(a.bot,z.bot)-Math.max(a.y,z.y)>5)hit++;} // hit===0 이어야 마감
 ```
 - **★ 더블하이트 clone 주의**: 타 행보다 큰 섹션(여러 폰행을 가진 2단 레이아웃)을 clone해 표준 슬롯에 넣으면 아래 행을 침범한다(실패 사례: e04(1820)를 e05 슬롯에 clone → e-loading 640px 침범). 폰을 **단일 행으로 재배치**해 슬롯 높이에 맞추거나, 아래 전 행을 cascade한다.
+
+### 9. 자동 마감 검수 게이트 (7항목 · 마감 필수 자동 실행)
+§7(3자 매칭)·§8(리플로우) 뒤 **마감 시퀀스의 마지막**으로 항상 자동 실행한다(사용자 요청 불필요). 7항목을 audit해 **검수 리포트(항목별 PASS/FAIL + 증거)** 를 보고에 포함한다. 각 항목 규칙은 **owner 섹션이 단일 소스** — 여기엔 탐지 스크립트·게이트 경계만(방법론 복붙 금지). 헬퍼 `insideInstance(n)`=대상 노드가 인스턴스 외부(authored)인지.
+
+**수정 정책**: 탐지는 항상 자동. **자동 수정 = 안전·기계적인 것만**(#1 컴포넌트 교체·#2 배지 추가·#7 override/detach 복구). **신규 화면이 필요한 #5·#6, variant 구조 불일치 = HITL** — 리포트 후 사용자 확인 → §0/§6 루프로 화면 추가(`/design-sync` 일시정지 규칙과 동일). 자동수정이 정본을 건드리면 다시 §8 리플로우.
+
+| # | 항목 | owner(규칙·단일소스) | 처리 |
+|---|---|---|---|
+| 1 | DS 컴포넌트 100%(bespoke UI 0) | `figma-design` §H·§L·§M | 자동교체 |
+| 2 | 모든 액션 요소에 배지 | `design-description` badge-matching | 자동추가(애매=리포트) |
+| 3 | 배지 ↔ 디스크립션 일치 | `design-description` §7·(B)의미검증 | 동기화(기존) |
+| 4 | 디스크립션 양식 준수 | `design-description` 정본 annotation-frame | 교정(기존) |
+| 5 | 디스크립션 엣지케이스가 디자인에 존재 | §6 | HITL 화면추가 |
+| 6 | 요소→목적지 화면 완전성 | §0 | HITL 화면추가 |
+| 7 | 시스템 컴포넌트 무결성(안 깨짐) | `figma-design` §F·§G | 자동복구 |
+
+- **#1 DS 커버리지** — authored 비-콘텐츠 UI에 bespoke 잔재 0:
+```js
+const bad=[]; for(const sec of page.children.filter(c=>c.type==='SECTION'))
+ for(const n of sec.findAll(x=>['FRAME','RECTANGLE','ELLIPSE','VECTOR'].includes(x.type))){ if(insideInstance(n))continue;
+   if(/chip|tab|btn|button|toggle|radio|checkbox|select|input|badge|card|pill|switch/i.test(n.name)) bad.push(sec.name+'/'+n.name); }
+// bad=[] 이어야. 남으면 §M/§L 정본 컴포넌트로 교체(인풋=use_form·탭/칩=M-9/10·버튼=btn54…)
+```
+- **#7 컴포넌트 무결성** — authored 최상위 INSTANCE 전수(detach 0·override 유지):
+```js
+const broken=[]; for(const sec of page.children.filter(c=>c.type==='SECTION'))
+ for(const inst of sec.findAll(x=>x.type==='INSTANCE')){ if(insideInstance(inst))continue;
+   const mc=await inst.getMainComponentAsync(); if(!mc){broken.push(inst.id+' DETACHED');continue;}
+   if(inst.children&&inst.children.length===0)broken.push(inst.id+' EMPTY'); }
+// detach/empty 0. + get_screenshot로 swap 잔재(이중테두리·팬텀여백·색 이상=§F)·텍스트 오버라이드 유실 육안 확인
+```
+- **#2 액션 배지 완전성** — 인터랙티브 요소(버튼·입력·탭·칩·시트 트리거·링크·토글) 집합 vs `label-group` 배지 대상. 각 인터랙티브 요소의 edge 최근접에 배지가 있는지 좌표로 대조 → 누락분 리포트(명확하면 배지 추가, 애매하면 HITL). 규칙·뱃지 양식은 `design-description` badge-matching.
+- **#5 디스크립션→디자인 역검증** — 각 화면 Description 본문에서 `[상태]/[엣지·예외]/[오버레이]/[에러]/[노출 조건]` 분기를 추출해, **분기마다 대응 디자인**(상태 프레임·오버레이 폰·variant)이 존재하는지 대조. 없으면 리포트 → §6로 화면화(HITL).
+- **#6 요소→목적지 화면 완전성** — 각 인터랙티브 요소가 *여는* 화면이 §0 인벤토리/`flow.md`에 존재하는지 대조(예: e01 검색 인풋→검색/자동완성/결과 화면, 카드 탭→상세). 누락이면 인벤토리 보완 + §6/§0 루프(HITL). #3·#4는 `design-description`이 owner(여기선 그 결과를 PASS 확인만).
+
+> **#5·#6·#2는 의미 판단이 섞여 100% 스크립트화가 어렵다 → 파싱으로 후보를 뽑아 리포트하고 HITL.** #1·#7은 스크립트로 자동 판정·자동수정. 리포트는 7행 PASS/FAIL 표로 항상 남긴다(변경 0이어도 증거).
 
 ## 원칙
 - **흐름 먼저, 화면은 그다음.** 화면 나열이 아니라 end-to-end 플로우를 설계하고 인벤토리 완전성(완료·실패·로딩)을 확인한 뒤 화면을 만든다(§0).

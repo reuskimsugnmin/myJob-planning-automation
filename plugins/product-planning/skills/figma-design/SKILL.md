@@ -107,7 +107,7 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
 구조가 선 화면을 출시 품질로 마감하는 별도 패스. **"큰 요소만 DS"가 아니라 "전 요소 DS"가 기준.**
 - 안내/상태 문구 → 정보 배너 컴포넌트(평문 금지). **탭 → `EL_tab_1deapt`(M-9) · 필터/세그먼트 칩 → `EL_tab_2deapt`(M-10)** — 직접 그린 pill/탭 금지. 선택 표시 → Radio/Checkbox 컴포넌트(직접 그린 원 금지). 강조 라벨 → Badge/Label.
 - 화면 크롬: 상단 Status Bar·Header, 하단 Navigation Bar/Home Indicator 를 DS 인스턴스로.
-- 검증: 모든 **비-콘텐츠 UI 노드**가 `type==='INSTANCE'`(+`getMainComponentAsync().remote`)인가. 남은 `RECTANGLE/ELLIPSE/FRAME` bespoke UI 는 DS 컴포넌트로 교체.
+- 검증: 모든 **비-콘텐츠 UI 노드**가 `type==='INSTANCE'`(+`getMainComponentAsync().remote`)인가. 남은 `RECTANGLE/ELLIPSE/FRAME` bespoke UI 는 DS 컴포넌트로 교체. (이 커버리지는 `storyboard-build` §9 #1, 인스턴스 무결성(detach/override)은 §9 #7로 **마감 시 자동 audit**된다.)
 - **★ bespoke 전에 전 연결 라이브러리를 전수 탐색(스킵 금지).** 주 라이브러리(예 🔫HPDS_1.0)에 같은 이름이 없어도 **다른 이름의 동등 컴포넌트가 있을 수 있다** — bespoke로 가기 전 `search_design_system`(query 다양화: tab/탭/segmented/chip/필터 등) + 작업 파일 레퍼런스 노드를 **반드시 먼저 검색**한다. (실패 사례: 탭/칩을 "HPDS_1.0에 없다"고 단정해 bespoke로 만들었으나, 실제로는 `EL_tab_1deapt`/`EL_tab_2deapt`로 존재 — §M-9/10.)
 - **★ DS에 없으면 그리지 말고 플래그.** 전수 탐색해도 주 라이브러리에 없으면: ① **타 연결 라이브러리에 있으면 사용자 확인 후 재사용**(라이브러리 혼용은 일관성 영향 — 예: HDS 3.0 혼용은 사용자가 거부, HPDS_1.0 정본 우선) ② 어디에도 없으면 사용자에게 "DS에 없다, 어떤 소스를 쓸까" 확인 후 bespoke+§K 토큰 바인딩.
 
