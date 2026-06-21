@@ -103,10 +103,12 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
 2. **auto-layout 리스트에 항목 추가 시 FIXED 높이 수동 확장 금지** = 콘텐츠 auto-grow + 높이 추가 → 팬텀 여백(`primaryAxisAlignItems=MAX` 면 상단 빈공간). → 컨테이너 `primaryAxisSizingMode='AUTO'`(HUG).
 3. **★ 삽입/clone 후 높이 붕괴·흰 여백 = hug 미처리(가장 잦은 삽입 에러).** 컴포넌트를 auto-layout에 append하면 종종 ① `layoutGrow=1`/`lsV='FILL'`로 **높이가 1px로 붕괴**(숨겨져 보임), ② FIXED 프레임이 visible 콘텐츠보다 훨씬 커서 **흰 여백**(완료헤드처럼 hidden 자식 자리 남음)이 생긴다. **휴리스틱: 화면에 흰 여백이 많거나 컴포넌트가 안 보이면 hug 결함을 의심**한다. → **삽입 후 hug 검증·자동수정**: auto-layout 자식이면 `layoutGrow=0` + `layoutSizingVertical='HUG'`(프레임이면 `primaryAxisSizingMode='AUTO'`). 이 검증은 `storyboard-build` §9 #9로 **마감 시 자동 audit**된다.
 ```js
-// 삽입/clone 직후 또는 마감: 붕괴(<6px)·흰여백(height>visible콘텐츠+32) 자동수정
+// 삽입/clone 직후 또는 마감: 붕괴(<6px)·흰여백(height>visible콘텐츠+32) 자동수정.
+// ★ FRAME뿐 아니라 INSTANCE도 — 컴포넌트 인스턴스가 콘텐츠보다 훨씬 큰 흰여백이 잦다(total_set 177→50 사례).
 const content=(n)=>{let b=0;for(const c of (n.children||[])){if(c.visible===false)continue;const cb=(c.y||0)+(c.height||0);if(cb>b)b=cb;}return b;};
-if(n.height<6 && n.children?.some(c=>c.visible!==false&&c.height>2)){ n.layoutGrow=0; try{n.layoutSizingVertical='HUG'}catch(e){n.primaryAxisSizingMode='AUTO'} }       // 붕괴
-else if(n.type==='FRAME'&&n.layoutMode==='VERTICAL'&&n.primaryAxisSizingMode==='FIXED'&&n.height>content(n)+32){ n.primaryAxisSizingMode='AUTO' }                          // 흰여백
+const inAL = n.parent && (n.parent.layoutMode==='VERTICAL'||n.parent.layoutMode==='HORIZONTAL');
+if(inAL && n.height<6 && n.children?.some(c=>c.visible!==false&&c.height>2)){ n.layoutGrow=0; try{n.layoutSizingVertical='HUG'}catch(e){if(n.type==='FRAME')n.primaryAxisSizingMode='AUTO'} }   // 붕괴
+else if(inAL && content(n)>0 && n.height>content(n)+32){ n.layoutGrow=0; try{n.layoutSizingVertical='HUG'}catch(e){if(n.type==='FRAME'&&n.layoutMode)n.primaryAxisSizingMode='AUTO'} }      // 흰여백(FRAME·INSTANCE 공통)
 ```
 - 같은 계층 구조의 컴포넌트만 `swapComponent` 가능. 구조가 다르면 수동 교체 후 "수동 확인 필요" 명시.
 - **교체 시 옛 요소는 완전 삭제.** 새 인스턴스를 옛 그룹 위에 얹지 말 것(잔여 stroke/fill/radius/padding → 이중 테두리·겹침).
