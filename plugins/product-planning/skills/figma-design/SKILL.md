@@ -43,12 +43,15 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
     sec  = page.children.find(SECTION, |n.y-(sb.y+OFF)|<선, n.x≈36)         // 디자인 섹션
     desc = page.children.find(FRAME name='Description', |n.y-(sb.y+OFF)|<선, n.x≈1421)
     OFF = sec.y - sb.y (첫 행에서 측정; 보통 142)
-    // 3) 리사이즈 + cascade
-    rowH = OFF + max(sec.height, desc.height) + pad(40)
+    // 3) 리사이즈 + cascade — desc는 먼저 AUTO(콘텐츠 hug)로, 높이는 실제 콘텐츠 extent로
+    desc.primaryAxisSizingMode='AUTO'   // FIXED면 오버플로해도 height 안 변해 아래 행 침범
+    secBot = realBottom(sec); descBot = realBottom(desc)   // = absoluteBoundingBox + 자식 최대 extent (height 직접 사용 금지)
+    rowH = OFF + max(secBot-sec.y, descBot-desc.y) + pad(40)
     sb.resize(sb.width, rowH); sb.y=rowTop; sec.y=desc.y=rowTop+OFF
     rowTop += rowH + gap(60)
   return 매칭 카운트(행수·미매칭) // dry-run 보고로 오매칭 0 확인
   ```
+  - **★ `desc.height`(및 `sec.height`)를 직접 신뢰하지 말 것.** Description은 `primaryAxisSizingMode='AUTO'`여야 하고, 행 높이·겹침은 **`absoluteBoundingBox` + 자식 콘텐츠 최대 extent**(`realBottom`)로 계산한다 — FIXED 프레임은 콘텐츠가 넘쳐도 height가 안 변해 검사를 속인다(실패 사례 e05: 697 frame에 1204 콘텐츠 → e-loading 침범).
   - **완료 게이트(필수).** 디자인/디스크립션을 **편집한 커맨드는 마감에서 이 루틴을 항상 실행**한다(`storyboard-build`/`design-description`/`/design-sync`). 사용자가 따로 요청하지 않아도 자동. *단* Figma에서 손으로 직접 편집한 경우는 자동이 아니므로 `/design-sync`로 1회 트리거.
   - 미매칭(비표준 행: SB 없음/Description 이름 불일치)은 건너뛰고 **카운트로 보고**(임의 이동 금지).
 
