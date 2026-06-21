@@ -33,7 +33,8 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
   - 행을 위→아래로 순회하며 `rowTop` 누적. 헤더오프셋 = SECTION/Description top − SB top(예 142).
   - **`SB_Templates` 인스턴스 height를 강제 리사이즈**: `sb.resize(폭, 헤더오프셋 + max(SECTION.height, Description.height) + pad(≈40))` — 카드가 콘텐츠 전체를 덮게(인스턴스 resize 가능; 막히면 보고). SB_Header 밴드는 상단 고정·카드 바디가 늘어남.
   - 같은 행 `SB.y = rowTop`, `SECTION.y = Description.y = rowTop + 헤더오프셋`. 다음 행 `rowTop += SB.height + gap(≈60)`.
-  - 리플로우 후 `get_metadata`/`get_screenshot` 으로 카드가 Description를 덮고 행 간 겹침 0 확인.
+  - **SECTION 노드도 자기 콘텐츠를 담게 리사이즈**: 폰을 2행(오버레이 등)으로 추가하면 SECTION 높이가 콘텐츠보다 작아 디자인이 섹션 밖으로 빠진다 → `sec.resizeWithoutConstraints(폭, 자식 최대 bottom − sec.y)`. (SB 카드만 키우고 SECTION을 안 키운 게 e02 "섹션이 디자인 미포함" 결함.)
+  - 리플로우 후 `get_metadata`/`get_screenshot` 으로 카드가 Description를 덮고 **SECTION이 모든 폰을 포함**(`section.height ≥ 자식 extent`)하며 행 간 겹침 0 확인.
 - **자동 발견 리플로우 루틴(하드코딩 id 금지 · 재사용).** 특정 화면 id를 박지 말고 페이지에서 행을 **스스로 찾아** 리플로우한다 — 어떤 스토리보드 페이지에도 동작:
   ```
   // 1) 행 발견: SB_Templates 인스턴스를 Y 오름차순 정렬
@@ -46,6 +47,8 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
     // 3) 리사이즈 + cascade — desc는 먼저 AUTO(콘텐츠 hug)로, 높이는 실제 콘텐츠 extent로
     desc.primaryAxisSizingMode='AUTO'   // FIXED면 오버플로해도 height 안 변해 아래 행 침범
     secBot = realBottom(sec); descBot = realBottom(desc)   // = absoluteBoundingBox + 자식 최대 extent (height 직접 사용 금지)
+    // ★ SECTION도 자기 콘텐츠(폰 2행 등)를 담게 리사이즈 — SB 카드만 키우면 섹션이 디자인을 못 담는다(실패: e02 2폰행이 섹션 밖)
+    sec.resizeWithoutConstraints(sec.width, Math.ceil(secBot - sec.absoluteBoundingBox.y))
     rowH = OFF + max(secBot-sec.y, descBot-desc.y) + pad(40)
     sb.resize(sb.width, rowH); sb.y=rowTop; sec.y=desc.y=rowTop+OFF
     // 4) ★ SB 라벨 자동 동기화 — [화면 ID]·타이틀을 섹션명에서 파생(stale 드리프트 방지)

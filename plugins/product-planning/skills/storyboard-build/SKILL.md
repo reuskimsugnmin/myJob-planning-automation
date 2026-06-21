@@ -54,6 +54,10 @@ description: PRD/SDD를 Figma 스토리보드·low/mid-fi 디자인으로 실현
 - **화면별 IA 명세**: policy-table 화면 목록에 **IA(정보위계·핵심값·핵심 컴포넌트) 칼럼**을 채운다. 예: 국가선택=대륙 탭+인기국가 그리드+검색 / 상품목록=유형 탭+기간 필터+facet+소셜프루프 카드 / 상세=2축 선택 매트릭스+표준 스펙+정책 아코디언. 출처(reference-research §/lazyweb URL) 인용.
 - **★ 크로스 도메인 스켈레톤 clone 금지(핵심 규칙):** clone 소스는 **같은 도메인·같은 IA** 화면만 쓴다. 픽스 컴포넌트(`figma-design` §M)·골격은 **재료로 재사용**하되, **타 도메인 화면 전체를 clone해 텍스트만 교체하지 말 것**. 신규(mode B)는 위 IA대로 **DS 컴포넌트 조립으로 첫 화면을 짓고**, 그 화면을 이후 같은-IA 화면의 clone 소스로 삼는다.
 - **★ 서브플로우도 메인과 동일하게 벤치마크 게이트 필수(검색·필터·상세·온보딩·인증 등).** 서브플로우를 추가할 때 **부모 브라우즈 화면을 clone해 라벨만 바꾸지 말 것** — 부모의 요소(예: 영역 필터 칩)가 서브플로우(검색 상세)에 섞여 흐름이 모호해진다(실패 사례: e01 검색을 e01 브라우즈 clone으로 만들어 영역 칩+검색 필드 혼재). **검색류는 레퍼 표준으로 dev-detailed 설계**: 검색바(취소/뒤로)·**최근 검색어**(개별·전체 삭제)·**인기/추천 검색어**·타이핑 시 **자동완성 제안 리스트**·결과/결과없음(추천). 진입은 부모의 검색 필드를 **엔트리(버튼)** 로 두고 탭 시 검색 화면으로 네비게이트. 디스크립션에 `[상태]`(Default/Focus/Typing/Empty)·`[인터랙션]`·`[데이터]`(recentQueries·suggest(q)→…)·`[전이]`를 담아 **실 개발 가능**하게.(출처: lazyweb 검색 패턴 google/tiktok/maps + reference-research)
+- **★ UX 패턴 결정은 준거를 댄다(ad hoc 금지)** — **Material Design 3·Apple HIG·경쟁사 레퍼**를 근거로. 핵심 규칙:
+  - **선택 컨트롤**: 소수(≈2~5)·단일선택·항상 보여야 할 1차 필터 = **칩/세그먼트(inline, 탭=즉시 반영)**. 다수·멀티선택·복합·부가 = **바텀시트/메뉴**. → **같은 값을 칩과 시트로 동시에 두지 말 것**(중복 선택기 — 실패: e02 기간 inline 칩인데 같은 값 바텀시트로 또). 시트는 "옵션이 많아 inline이 안 될 때"만.
+  - **내비**: 탭=동등 분류 전환, 시트=일시적 선택/액션, 풀스크린=맥락 전환(검색 상세 등).
+  - 결정 근거(어느 가이드/레퍼의 어떤 패턴)를 policy-table IA 칼럼에 1줄 인용.
 - IA를 사용자에게 제시·확인받은 뒤 §3로.
 
 ### 3. 화면 실현 (figma-design 방법론)
@@ -126,7 +130,14 @@ const broken=[]; for(const sec of page.children.filter(c=>c.type==='SECTION'))
    if(inst.children&&inst.children.length===0)broken.push(inst.id+' EMPTY'); }
 // detach/empty 0. + get_screenshot로 swap 잔재(이중테두리·팬텀여백·색 이상=§F)·텍스트 오버라이드 유실 육안 확인
 ```
-- **#2 액션 배지 완전성** — 인터랙티브 요소(버튼·입력·탭·칩·시트 트리거·링크·토글) 집합 vs `label-group` 배지 대상. 각 인터랙티브 요소의 edge 최근접에 배지가 있는지 좌표로 대조 → 누락분 리포트(명확하면 배지 추가, 애매하면 HITL). 규칙·뱃지 양식은 `design-description` badge-matching.
+- **#2 액션 배지 완전성(★ 카운트 아님 — 요소별 배지 실재)** — **모든 인터랙티브 요소**가 *각자* 노출 배지를 가져야 한다: 버튼·입력·탭(탭바)·칩(칩행)·카드·링크·토글 **+ 오버레이 서브액션**(시트 옵션 행 각각·팝업 버튼 각각). **디스크립션 inline 서술로 대체 금지** — 시트 옵션/팝업 버튼도 `label-group` 배지(부모 N + 서브 Na/Nb)를 *디자인 위에* 둔다(실패: e02 시트 옵션·팝업 버튼을 배지 없이 inline로 때움). 각 액션 요소 bbox edge 최근접 배지 ≤ 임계거리인지 스크립트로 대조 → 미스 0. 양식은 `design-description` badge-matching.
+```js
+// 인터랙티브 요소 ↔ 최근접 배지 대조(미스 리포트)
+const acts=sec.findAll(n=>n.visible&&/btn|button|EL_input|use_form|tab$|chip|EL_tab|product-card|toggle|radio|checkbox|EL_Select|Close|닫기|확인|취소/i.test(n.name)&&!insideInstance(n.parent));
+const badges=sec.children.filter(c=>c.name==='label-group').map(b=>b.absoluteBoundingBox);
+const miss=acts.filter(a=>{const ab=a.absoluteBoundingBox;return !badges.some(b=>Math.hypot((b.x+b.width/2)-(ab.x), (b.y+b.height/2)-(ab.y))<120);});
+// miss=[] 이어야. 남으면 해당 요소 위에 배지 추가
+```
 - **#5 디스크립션→디자인 역검증** — 각 화면 Description 본문에서 `[상태]/[엣지·예외]/[오버레이]/[에러]/[노출 조건]` 분기를 추출해, **분기마다 대응 디자인**(상태 프레임·오버레이 폰·variant)이 존재하는지 대조. 없으면 리포트 → §6로 화면화(HITL).
 - **#6 요소→목적지 화면 완전성** — 각 인터랙티브 요소가 *여는* 화면이 §0 인벤토리/`flow.md`에 존재하는지 대조(예: e01 검색 인풋→검색/자동완성/결과 화면, 카드 탭→상세). 누락이면 인벤토리 보완 + §6/§0 루프(HITL). #3·#4는 `design-description`이 owner(여기선 그 결과를 PASS 확인만).
 
