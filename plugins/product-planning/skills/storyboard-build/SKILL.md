@@ -83,6 +83,13 @@ description: PRD/SDD를 Figma 스토리보드·low/mid-fi 디자인으로 실현
 
 ### 8. 리플로우 자동 실행 (마감 필수 게이트)
 화면·케이스 추가나 디스크립션 변경으로 행 높이가 바뀌었으므로, 작업을 끝내기 전 **`figma-design` §A 자동 발견 리플로우 루틴을 항상 실행**한다(SB 카드 height 리사이즈 + 전 행 Y cascade, 겹침 0). 사용자 요청 없이 자동. 매칭 카운트(행수·미매칭)를 보고에 포함. (손편집 후 단독 정렬은 `/design-sync`.)
+- **★ 완료 조건 = SECTION·Description bbox 교차 0을 스크립트로 확인**(눈으로만 보지 말 것). 격리 스크린샷은 겹침을 숨기므로 반드시 좌표로 검증 — 교차가 1건이라도 있으면 cascade 재실행. 점검:
+```js
+const B=page.children.filter(c=>c.type==='SECTION'||(c.type==='FRAME'&&c.name==='Description')).map(c=>({n:c.name,x:c.x,y:c.y,w:c.width,h:c.height}));
+const ov=(a,b)=>a.x<b.x+b.w&&b.x<a.x+a.w&&a.y<b.y+b.h&&b.y<a.y+a.h;
+let hit=0; for(let i=0;i<B.length;i++)for(let j=i+1;j<B.length;j++)if(ov(B[i],B[j]))hit++; // hit===0 이어야 마감
+```
+- **★ 더블하이트 clone 주의**: 타 행보다 큰 섹션(여러 폰행을 가진 2단 레이아웃)을 clone해 표준 슬롯에 넣으면 아래 행을 침범한다(실패 사례: e04(1820)를 e05 슬롯에 clone → e-loading 640px 침범). 폰을 **단일 행으로 재배치**해 슬롯 높이에 맞추거나, 아래 전 행을 cascade한다.
 
 ## 원칙
 - **흐름 먼저, 화면은 그다음.** 화면 나열이 아니라 end-to-end 플로우를 설계하고 인벤토리 완전성(완료·실패·로딩)을 확인한 뒤 화면을 만든다(§0).

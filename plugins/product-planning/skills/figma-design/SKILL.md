@@ -102,10 +102,11 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
 
 ## H. zero-bespoke 마감 (출시 품질)
 구조가 선 화면을 출시 품질로 마감하는 별도 패스. **"큰 요소만 DS"가 아니라 "전 요소 DS"가 기준.**
-- 안내/상태 문구 → 정보 배너 컴포넌트(평문 금지). 보조 필터·세그먼트 → 세그먼트/탭/Choice Chips. 선택 표시 → Radio/Checkbox 컴포넌트(직접 그린 원 금지). 강조 라벨 → Badge/Label.
+- 안내/상태 문구 → 정보 배너 컴포넌트(평문 금지). **탭 → `EL_tab_1deapt`(M-9) · 필터/세그먼트 칩 → `EL_tab_2deapt`(M-10)** — 직접 그린 pill/탭 금지. 선택 표시 → Radio/Checkbox 컴포넌트(직접 그린 원 금지). 강조 라벨 → Badge/Label.
 - 화면 크롬: 상단 Status Bar·Header, 하단 Navigation Bar/Home Indicator 를 DS 인스턴스로.
 - 검증: 모든 **비-콘텐츠 UI 노드**가 `type==='INSTANCE'`(+`getMainComponentAsync().remote`)인가. 남은 `RECTANGLE/ELLIPSE/FRAME` bespoke UI 는 DS 컴포넌트로 교체.
-- **★ DS에 없으면 그리지 말고 플래그.** 필요한 아이콘·컴포넌트가 연결 라이브러리에 없으면(예: 비-telecom DS의 wifi/5G 글리프) 직접 도형으로 그리지 말고 사용자에게 "DS에 없다, 어떤 소스를 쓸까" 확인한다.
+- **★ bespoke 전에 전 연결 라이브러리를 전수 탐색(스킵 금지).** 주 라이브러리(예 🔫HPDS_1.0)에 같은 이름이 없어도 **다른 이름의 동등 컴포넌트가 있을 수 있다** — bespoke로 가기 전 `search_design_system`(query 다양화: tab/탭/segmented/chip/필터 등) + 작업 파일 레퍼런스 노드를 **반드시 먼저 검색**한다. (실패 사례: 탭/칩을 "HPDS_1.0에 없다"고 단정해 bespoke로 만들었으나, 실제로는 `EL_tab_1deapt`/`EL_tab_2deapt`로 존재 — §M-9/10.)
+- **★ DS에 없으면 그리지 말고 플래그.** 전수 탐색해도 주 라이브러리에 없으면: ① **타 연결 라이브러리에 있으면 사용자 확인 후 재사용**(라이브러리 혼용은 일관성 영향 — 예: HDS 3.0 혼용은 사용자가 거부, HPDS_1.0 정본 우선) ② 어디에도 없으면 사용자에게 "DS에 없다, 어떤 소스를 쓸까" 확인 후 bespoke+§K 토큰 바인딩.
 
 ## J. 상태·활성화 표현 (디자인에 드러내기)
 디스크립션의 `[Default 상태]`(예 버튼 Disabled→조건 시 Enabled)는 **텍스트로만 남기지 말고 디자인에도 드러낸다** — 개발·QA가 화면만 보고 규칙을 알 수 있게.
@@ -121,7 +122,14 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
 손으로 만든 노드도 **raw hex·raw 폰트 금지** — 색·타이포는 연결 라이브러리(예 HPDS_1.0) 변수에 바인딩한다. DS 컴포넌트 인스턴스는 자체 바인딩을 갖고 오므로 대상이 아니고, **내가 작성한 TEXT/도형/프레임**이 갭이다(가장 잦은 토큰 미적용 원인).
 - **색**: `node.fills` 의 SOLID paint를 `setBoundVariableForPaint(paint, 'color', variable)` 로 색 변수에 바인딩(텍스트 컬러·배경·라인 모두). 변수는 `search_design_system`(includeVariables) / `get_variable_defs` 로 수집(예 `Grayscale/gray900`·`Primary/primary500`·`Grayscale/gray600_text_fields`).
 - **타이포(색만으로는 불충분 — 텍스트 스타일 토큰 필수)**: 손작업 TEXT는 색 변수만이 아니라 **HPDS 텍스트 스타일**을 적용한다 — `node.setTextStyleIdAsync(style.id)`(스타일은 `figma.getLocalTextStylesAsync()`/원격 라이브러리에서 이름으로 조회). 폰트 스타일이 토큰화되지 않으면 색만 라이브러리고 타이포는 raw로 남는다(사용자가 별도 적용해야 했던 실패 사례). 공통 스타일 예: 제목 `✏️ Title/H1_B_24`·`H3_B_20`, 본문 `✏️ Body/P2_R_16`·`P3_B_14`(라벨)·`P3_R_14`, 캡션 `✏️ Caption/C1_R_12`. 스타일 적용 전 해당 폰트 로드(§E). DS에 토큰이 없을 때만 raw, 그 경우 §H 플래그.
-- **검증**: 작업 노드에 `get_variable_defs`(색) + 각 TEXT의 `textStyleId`(타이포) 확인 → 손작업 텍스트/도형이 DS 변수·스타일로 잡히는지(raw hex/raw 폰트 잔존 0). 안 잡히면 미바인딩.
+- **검증(★ 마감 필수 게이트 — 색만 바인딩하는 부분적용 금지)**: 작업 끝내기 전 authored 노드를 **스크립트로 전수 검사**한다. ① 배경/라인 도형: `fills[0].boundVariables.color` 有 ② 각 TEXT: `textStyleId` 有(빈 문자열/`figma.mixed` 아님). **fillBound=false 또는 styleId 없음이 1건이라도 있으면 미완료.** annotation 배지(`text-area`)·이모지/아이콘 글리프(국기·`›`·`▾` 등 텍스트스타일 부적합)는 제외. 텍스트스타일은 **타이포만 바꾸고 색(fills)은 불변**이므로 안전 — 적용 전 그 스타일의 폰트를 `loadFontAsync`(원격 스타일은 `setTextStyleIdAsync`가 내부 로드하나 실패 시 선로드 필요). 점검 스니펫:
+```js
+// authored(인스턴스 외부) 노드 raw 검사
+let badFill=0,badText=0;
+for(const n of sec.findAll(x=>x.type==='FRAME'||x.type==='RECTANGLE')){ if(insideInstance(n)||n.name==='text-area')continue; const f=n.fills&&n.fills[0]; if(f&&f.type==='SOLID'&&!(f.boundVariables&&f.boundVariables.color))badFill++; }
+for(const t of sec.findAllWithCriteria({types:['TEXT']})){ if(insideInstance(t)||!t.textStyleId)badText++; }
+// badFill==0 && badText==0 이어야 마감
+```
 
 ## L. 컴포넌트 매칭 (필드 → DS 컴포넌트, bespoke 금지)
 같은 의미의 UI는 **DS의 전용 컴포넌트**로 짓는다 — 입력/선택/라벨/바텀 액션을 직접 도형·텍스트로 조립하지 않는다(§D 우선순위의 구체화). 반복 오버레이·안내·상세블록은 §M 픽스 컴포넌트 카탈로그의 정본 clone.
@@ -145,6 +153,8 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
 | M-6 | 안내 인포박스 | `409:5877`(`notification`) | 아이콘(`ico20/info2`)+텍스트, radius12·pad16/12 | 안내 문구. variant 색: **red=부정·blue=긍정·gray=안내** |
 | M-7 | 결과 상세 내역 | `409:5534`(`ui/detail`) | 라벨+값 행 + divider, bg `03(f4f7fd)`·radius12 | 완료/실패/대기에 핵심 데이터(계좌·금액 등). 강조값 primary |
 | M-8 | 빈 상태(empty) | `409:6567`(`Frame 1597884660`) | 아이콘 + 안내 타이틀(+선택 서브/CTA), VERTICAL | 리스트/검색 결과 없음. 컨텐츠 영역 중앙 배치, 타이틀만 교체 |
+| M-9 | 1-depth 탭(언더라인) | `514:8011`(`EL_tap_set_main`) / 아이템 `EL_tab_1deapt/active`(key `65977f0147f60808b9ac405b68b8b64be667749a`)·`unselected`(`311a01348d99ff2def2fb81f558b468124742c4b`) | **항목 수만큼 아이템 인스턴스를 가로 컨테이너에 조립**. 라벨=내부 `Tab Text`(직접 오버라이드·폰트 로드), 카운트 뱃지(`10건`)는 불필요 시 `visible=false`. 선택=active 1개·나머지 unselected | 화면 1차 분류 탭(상품 유형·사용/만료 등) |
+| M-10 | 칩(2-depth 필 탭) | `514:8012`(`tab_2dept`) / 아이템 `EL_tab_2deapt/on`(key `4237ca630836721b4c3287d6f840700e8ef4e908`)·`off`(`22572897527e4e2cef06a1c912e5b09a9b7add48`) | **항목 수만큼 인스턴스 조립**. 라벨=내부 `Tab Label`. 선택=on 1개·나머지 off | 필터/세그먼트 칩(지역·기간 등). **직접 그린 pill/chip 금지** |
 
 - **★ clone-override 함정 2종(인포박스·M-8 등 가변 높이 컴포넌트에서 자주).** ① **불필요한 `setProperties` 금지** — 정본 인스턴스는 이미 원하는 variant·높이로 collapse돼 있는데, 같은 variant라도 `setProperties(Type=…)`를 호출하면 **메인 컴포넌트 기본 상태(모든 줄 노출·큰 높이)로 리셋**된다(예: red 인포박스가 60→380px). variant 변경이 꼭 필요할 때만 호출하고, 텍스트는 **렌더되는 TEXT 노드를 직접** 세팅(프로퍼티가 보이는 노드에 안 묶여 있을 수 있음). ② **auto-layout 부모에 append 시 `layoutGrow`/`layoutAlign`/`layoutSizingHorizontal` 점검** — 컴포넌트가 `layoutGrow=1`이면 **세로 auto-layout 부모에 들어가는 순간 세로를 꽉 채워 부풀어 깨진다**(결과·빈상태 화면 Body, 폼 content 모두 VERTICAL auto-layout인 경우 많음). append 후 **가변높이 컴포넌트는 `layoutGrow=0` + `counterAxisSizingMode='AUTO'`(높이 hug)**, 절대배치 필요 시 `layoutPositioning='ABSOLUTE'`. **auto-layout content 안 구성 자식은 width를 `layoutSizingHorizontal='FILL'`로 통일**(use_form·인포박스 등 — FIXED 폭이면 반응형 깨짐). 부모 content는 가능하면 `primaryAxisSizingMode='AUTO'`(height hug)로 spare 세로여백 제거(grow가 채울 여백 자체를 없앰).
 - **오버레이(M-3·M-4·M-5)는 별도 풀스크린 화면이 아니라 트리거 화면 위 오버레이**다 → 스토리보드에선 **트리거 화면 옆 상태 프레임**으로 둔다(상세케이스 방식, `storyboard-build` §6). 디스크립션에 **트리거(어디서 열리나)·복귀 경로**를 명시(`design-description`).
