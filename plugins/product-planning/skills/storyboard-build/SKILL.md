@@ -108,6 +108,7 @@ let hit=0; for(let i=0;i<E.length;i++)for(let j=i+1;j<E.length;j++){const a=E[i]
 | 5 | 디스크립션 엣지케이스가 디자인에 존재 | §6 | HITL 화면추가 |
 | 6 | 요소→목적지 화면 완전성 | §0 | HITL 화면추가 |
 | 7 | 시스템 컴포넌트 무결성(안 깨짐) | `figma-design` §F·§G | 자동복구 |
+| 8 | SB 화면번호/타이틀 == 섹션명 | `figma-design` §A 리플로우 4단계 | 리플로우로 자동동기화 |
 
 - **#1 DS 커버리지** — authored 비-콘텐츠 UI에 bespoke 잔재 0:
 ```js
@@ -128,7 +129,16 @@ const broken=[]; for(const sec of page.children.filter(c=>c.type==='SECTION'))
 - **#5 디스크립션→디자인 역검증** — 각 화면 Description 본문에서 `[상태]/[엣지·예외]/[오버레이]/[에러]/[노출 조건]` 분기를 추출해, **분기마다 대응 디자인**(상태 프레임·오버레이 폰·variant)이 존재하는지 대조. 없으면 리포트 → §6로 화면화(HITL).
 - **#6 요소→목적지 화면 완전성** — 각 인터랙티브 요소가 *여는* 화면이 §0 인벤토리/`flow.md`에 존재하는지 대조(예: e01 검색 인풋→검색/자동완성/결과 화면, 카드 탭→상세). 누락이면 인벤토리 보완 + §6/§0 루프(HITL). #3·#4는 `design-description`이 owner(여기선 그 결과를 PASS 확인만).
 
-> **#5·#6·#2는 의미 판단이 섞여 100% 스크립트화가 어렵다 → 파싱으로 후보를 뽑아 리포트하고 HITL.** #1·#7은 스크립트로 자동 판정·자동수정. 리포트는 7행 PASS/FAIL 표로 항상 남긴다(변경 0이어도 증거).
+- **#8 SB 라벨 == 섹션명** — 각 SB의 `[화면 ID]`·`화면 / 기능명`이 매칭 섹션명에서 파생한 값과 같은지(`[`+섹션명 접두+`]` / 나머지). 불일치는 `figma-design` §A 리플로우 4단계가 자동 동기화하므로 **리플로우 재실행으로 교정**(별도 수정 불필요). 드리프트 예: 섹션 `e05 본인인증`인데 SB `[P-04]`.
+```js
+for(const sb of page.children.filter(c=>c.type==='INSTANCE'&&c.name==='SB_Templates')){
+  const sec=page.children.find(s=>s.type==='SECTION'&&Math.abs(s.absoluteBoundingBox.y-(sb.absoluteBoundingBox.y+142))<60); if(!sec)continue;
+  const sp=sec.name.indexOf(' '), id=sp>0?sec.name.slice(0,sp):sec.name, title=sp>0?sec.name.slice(sp+1):sec.name;
+  const idT=sb.findOne(n=>n.type==='TEXT'&&n.name==='[화면 ID]'), tiT=sb.findOne(n=>n.type==='TEXT'&&n.name==='화면 / 기능명');
+  if(idT&&idT.characters!=='['+id+']') /* mismatch → 리플로우 */; }
+```
+
+> **#5·#6·#2는 의미 판단이 섞여 100% 스크립트화가 어렵다 → 파싱으로 후보를 뽑아 리포트하고 HITL.** #1·#7·#8은 스크립트로 자동 판정·자동수정. 리포트는 8행 PASS/FAIL 표로 항상 남긴다(변경 0이어도 증거).
 
 ## 원칙
 - **흐름 먼저, 화면은 그다음.** 화면 나열이 아니라 end-to-end 플로우를 설계하고 인벤토리 완전성(완료·실패·로딩)을 확인한 뒤 화면을 만든다(§0).

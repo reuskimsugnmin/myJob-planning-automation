@@ -24,7 +24,7 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
 | `SECTION` | 실제 디자인 화면 |
 | `Description` | 기획 디스크립션 프레임(SECTION 우측). 내부: `annotation-frame` × N, 각 프레임 = 텍스트 3개 — 노드명 **`"1"`(뱃지 번호)·`"Section Title.."`(제목)·`"Lorem ipsum..."`(본문)**. 신규 생성도 이 명명 준수 |
 
-- **화면 ID**: `P-NN`(예 P-01). `SB_Templates` 내 `[화면 ID]` 텍스트에 기록, 기존 최대+1 순차 부여.
+- **화면 ID·타이틀**: `SB_Templates` 내 `[화면 ID]`·`화면 / 기능명` 텍스트는 **SECTION 이름에서 파생**한다(섹션명 `e05 본인인증` → ID `[e05]` + 타이틀 `본인인증`; 접두=ID, 나머지=타이틀). 포맷은 페이지 컨벤션을 따른다(`P-NN`이든 `e01`이든 섹션명과 동일). **수동으로 박지 말 것 — 리플로우 루틴이 매 마감 자동 동기화**(아래 §리플로우 4단계)하므로 섹션명만 정확히 두면 라벨은 따라온다(stale `[P-04]` 드리프트 방지).
 - **Update 뱃지**: 디스크립션 완료 후 `visible=false`, 검토 필요 화면은 `true` 유지.
 - 화면 추가·교체 후 **뱃지(label-group/text-area)는 항상 최상위 z-order** 로(`parent.appendChild(badge)`) — 새 프레임 아래로 가려지지 않게.
 - **뱃지 배치(운영 양식)**: 뱃지는 `label-group` 그룹으로 **SECTION 노드의 직속 자식**(디자인 프레임의 형제·최상위 z)으로 두어 디자인 프레임과 **겹치지 않게** 좌측 가장자리에 붙인다(요소 edge 옆). **좌표는 부모 기준 상대좌표**다 — SECTION 자식은 섹션 상대, auto-layout 프레임 내부에 둘 땐 `layoutPositioning="ABSOLUTE"` + 프레임 상대. **페이지 절대좌표를 주면 화면 밖/바닥으로 빠진다**(흔한 실수).
@@ -48,6 +48,10 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
     secBot = realBottom(sec); descBot = realBottom(desc)   // = absoluteBoundingBox + 자식 최대 extent (height 직접 사용 금지)
     rowH = OFF + max(secBot-sec.y, descBot-desc.y) + pad(40)
     sb.resize(sb.width, rowH); sb.y=rowTop; sec.y=desc.y=rowTop+OFF
+    // 4) ★ SB 라벨 자동 동기화 — [화면 ID]·타이틀을 섹션명에서 파생(stale 드리프트 방지)
+    sp = sec.name.indexOf(' '); id = sp>0?sec.name.slice(0,sp):sec.name; title = sp>0?sec.name.slice(sp+1):sec.name
+    sb.findOne(TEXT name='[화면 ID]').characters = '['+id+']'   // 폰트 로드 후
+    sb.findOne(TEXT name='화면 / 기능명').characters = title     // 'e05 본인인증' → [e05] / 본인인증
     rowTop += rowH + gap(60)
   return 매칭 카운트(행수·미매칭) // dry-run 보고로 오매칭 0 확인
   ```
