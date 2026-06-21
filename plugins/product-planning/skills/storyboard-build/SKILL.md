@@ -20,6 +20,7 @@ description: PRD/SDD를 Figma 스토리보드·low/mid-fi 디자인으로 실현
 ## 선행
 - 대상 engagement에 `PRD.md`(있으면 `SDD.md`)가 있어야 한다.
 - `.planning/sources.json` 의 `figma.storyboard_template_file`(스토리보드 템플릿)·`figma.design_system_files`(연결 라이브러리)·`figma.legacy_files`/`reference_files` 를 확인. 스토리보드 대상 파일/페이지 URL이 없으면 사용자에게 요청.
+- **★ 레퍼런스 게이트(신규/mode B 필수):** `reference_files` 가 비어 있으면 **멈추고 사용자에게 레퍼런스 Figma/이미지를 요청**하거나 `reference-research.md`(경쟁사 패턴)로 충분한지 확인받는다. **레퍼런스 없이 화면을 짓지 않는다**(아래 §2.5 벤치마크 게이트로 연결).
 
 ## 절차
 
@@ -45,8 +46,16 @@ description: PRD/SDD를 Figma 스토리보드·low/mid-fi 디자인으로 실현
 - **모드 B — 백지 구축**: layout 구조부터 기성 composite 컴포넌트로 재설계. 남의 템플릿 clone·신규 화면·톤앤매너 변경. → 프로젝트 유형 **신규** 기본.
 - **혼합**이면 화면별로 A/B를 달리 선택. 모드 미지정이면 멈추고 사용자에게 묻는다.
 
+### 2.5 벤치마크 / 화면별 IA 게이트 (필수 — 화면 짓기 전, 특히 mode B)
+화면을 만들기 **전에** "이 화면이 이 도메인에서 어떤 구조여야 하나"를 레퍼런스로 정한다. 이 게이트를 건너뛰면 **타 도메인 화면을 clone해 텍스트만 바꾸는 가짜 설계**가 된다(가장 잦은 치명 실패 — 도메인 다른데 똑같아 보임).
+- **벤치마크 수집**: `lazyweb_search`(실제 동종 앱 화면)·웹 검색·`reference-research.md`(경쟁사 UX 패턴)로 **화면별 정보위계·핵심 컴포넌트·인터랙션**을 도출. 사용자 제공 레퍼런스 Figma가 있으면 `figma-explore`로 구조 학습(UI 학습 금지·IA/패턴만, 신규는 reference-research 경고 준수).
+- **화면별 IA 명세**: policy-table 화면 목록에 **IA(정보위계·핵심값·핵심 컴포넌트) 칼럼**을 채운다. 예: 국가선택=대륙 탭+인기국가 그리드+검색 / 상품목록=유형 탭+기간 필터+facet+소셜프루프 카드 / 상세=2축 선택 매트릭스+표준 스펙+정책 아코디언. 출처(reference-research §/lazyweb URL) 인용.
+- **★ 크로스 도메인 스켈레톤 clone 금지(핵심 규칙):** clone 소스는 **같은 도메인·같은 IA** 화면만 쓴다. 픽스 컴포넌트(`figma-design` §M)·골격은 **재료로 재사용**하되, **타 도메인 화면 전체를 clone해 텍스트만 교체하지 말 것**. 신규(mode B)는 위 IA대로 **DS 컴포넌트 조립으로 첫 화면을 짓고**, 그 화면을 이후 같은-IA 화면의 clone 소스로 삼는다.
+- IA를 사용자에게 제시·확인받은 뒤 §3로.
+
 ### 3. 화면 실현 (figma-design 방법론)
 - 기존 파일을 스캔해 화면 목록(SB_Templates+SECTION+Description 3세트)과 컴포넌트 인벤토리를 파악 → policy-table과 **갭 분석**(추가할 화면 / 기존 화면 TO-BE 수정).
+- **§2.5에서 확정한 화면별 IA대로 짓는다** — region마다 가장 높은 수준의 DS composite를 끼우되, 정보위계는 레퍼런스 기반(타 도메인 레이아웃 답습 금지).
 - **갭 분석 결과를 사용자에게 제시하고 확인받은 뒤** 실행(잘못된 대량 생성 방지).
 - 모드 A: 변경분만 in-place 반영(옛 요소 완전 삭제, 뱃지·디스크립션 보존). 모드 B: `figma-design` 의 ++Top 골격 + region↔컴포넌트 매핑 + zero-bespoke 마감으로 **한 패스에 완전한 구조**(Description 스캐폴드 포함)로 산출.
 - "누락 0개"여도 끝이 아님 — **기존 화면도 PRD TO-BE 항목 단위로 대조**해 반영. 5개씩 배치, 15개 초과는 범위 분할.
