@@ -109,7 +109,7 @@ let hit=0; for(let i=0;i<E.length;i++)for(let j=i+1;j<E.length;j++){const a=E[i]
 | 1 | DS 컴포넌트 100%(bespoke UI 0) | `figma-design` §H·§L·§M | 자동교체 |
 | 2 | 모든 액션 요소에 배지 | `design-description` badge-matching | 자동추가(애매=리포트) |
 | 3 | 배지 ↔ 디스크립션 일치 | `design-description` §7·(B)의미검증 | 동기화(기존) |
-| 4 | 디스크립션 양식 준수 | `design-description` 정본 annotation-frame | 교정(기존) |
+| 4 | 디스크립션 양식·컴포넌트명·dev-readiness | `design-description` §5 (A·B·B-2 형식·**B-3 컴포넌트명 누출**·C dev필드) | 교정(모드 무관 동일 품질) |
 | 5 | 디스크립션 엣지케이스가 디자인에 존재 | §6 | HITL 화면추가 |
 | 6 | 요소→목적지 화면 완전성 | §0 | HITL 화면추가 |
 | 7 | 시스템 컴포넌트 무결성(안 깨짐) | `figma-design` §F·§G | 자동복구 |
