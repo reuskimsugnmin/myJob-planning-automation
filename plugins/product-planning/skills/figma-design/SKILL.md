@@ -58,6 +58,8 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
     rowTop += rowH + gap(60)
   return 매칭 카운트(행수·미매칭) // dry-run 보고로 오매칭 0 확인
   ```
+  - **★ 리플로우 대상 페이지 = 편집한 SECTION의 parent 페이지.** `figma.currentPage`(호출 간 첫 페이지로 리셋)·문서 첫 페이지를 가정 금지 — 디자인 SECTION·Description이 별도 페이지에 있을 수 있고(스토리보드가 자체 페이지), 첫 페이지엔 **무관한 다른 스토리보드**가 있을 수 있다. 편집 노드에서 `node.parent`(PAGE)로 실제 페이지를 구해 **그 페이지의 행만** 리플로우한다(실패 사례 e01: 디스크립션이 별도 페이지 `466:5338`인데 첫 페이지 `0:1`엔 Taxi 스토리보드 → 첫 페이지를 스캔하면 무관 스토리보드를 옮길 뻔).
+  - **★ idempotency 검산(타 행 오이동 방지).** cascade 적용 전, 편집 행 외 **미편집 행 1~2개**의 계산 `rowH = OFF + max(secExt, descExt) + PAD`가 현재 SB height와 일치하는지 먼저 검산한다. 불일치면 OFF/GAP/PAD 상수가 페이지 컨벤션과 달라 타 행을 잘못 이동시킨다 → 상수 보정 후 진행(편집 행 + 그 아래 cascade만 움직여야 정상. e01에선 e02/e03/e04 SB height 일치 확인 후 진행 → 타 행 오이동 0).
   - **★ `desc.height`(및 `sec.height`)를 직접 신뢰하지 말 것.** Description은 `primaryAxisSizingMode='AUTO'`여야 하고, 행 높이·겹침은 **`absoluteBoundingBox` + 자식 콘텐츠 최대 extent**(`realBottom`)로 계산한다 — FIXED 프레임은 콘텐츠가 넘쳐도 height가 안 변해 검사를 속인다(실패 사례 e05: 697 frame에 1204 콘텐츠 → e-loading 침범).
   - **완료 게이트(필수).** 디자인/디스크립션을 **편집한 커맨드는 마감에서 이 루틴을 항상 실행**한다(`storyboard-build`/`design-description`/`/design-sync`). 사용자가 따로 요청하지 않아도 자동. *단* Figma에서 손으로 직접 편집한 경우는 자동이 아니므로 `/design-sync`로 1회 트리거.
   - 미매칭(비표준 행: SB 없음/Description 이름 불일치)은 건너뛰고 **카운트로 보고**(임의 이동 금지).
