@@ -2,6 +2,47 @@
 
 PM/PD 기획 워크플로우 자동화 플러그인. **산출물은 현재 작업 디렉토리(워크스페이스)** 에 생성되고, 템플릿/설정은 `${CLAUDE_PLUGIN_ROOT}` 에서 읽습니다.
 
+## 워크플로우 (도구 ↔ 작업 매핑)
+
+각 도구가 어떤 워크플로우 작업을 맡는지와 **인입 후 레거시/신규 분기**입니다. 사각 노드는 `커맨드 · 단계 (사용 스킬)`, 점선 박스(7~13단계)는 도구 미구현 *추후 업데이트 예정*.
+
+```mermaid
+flowchart TD
+    Start([노션 티켓 인입]) --> Intake["/intake · 1~2단계<br/>티켓 인입·히스토리·요건 파악<br/>(planning-intake → notion-explore)"]
+    Intake --> Type{"레거시 / 신규?<br/>HITL 유형 판정"}
+
+    Type -->|레거시 개선| Domain["/domain-study · 3단계<br/>레거시 정책·도메인 스터디 종합<br/>(domain-study → notion·figma·local·web-explore → knowledge-base)"]
+    Type -->|신규 기능·화면| Ref["/reference-research · 3-alt단계<br/>동일 도메인 레퍼런스 리서치 · UX 패턴만<br/>(reference-research → web·image·figma-explore → knowledge-base)"]
+    Type -->|혼합| Both["둘 다 수행"]
+
+    Domain --> Tech
+    Ref --> Tech
+    Both --> Tech
+
+    Tech["/tech-research · 4단계<br/>요구사항·기술문서·API 명세 정리<br/>(tech-research → web-explore+Context7 · notion · local → tech-registry)"]
+    Tech --> PRD["/prd · 5단계<br/>빅테크 PM PRD(원페이저+상세)<br/>(prd-author → decision-checklist · prd-sdd-editing)"]
+
+    PRD --> Gate{"SDD 필요?<br/>HITL 판단 게이트"}
+    Gate -->|예 · 큰 프로젝트| SDD["/sdd · 5단계<br/>구현 스펙 SDD(FR→SP 매핑)<br/>(sdd-author → Context7 재검증 · prd-sdd-editing)"]
+    Gate -->|아니오 · 단순 건| Meeting
+    SDD --> Meeting
+
+    Meeting["/meeting-synthesis · 6단계<br/>회의록(Google Doc)/Slack → PRD·SDD 반영<br/>(meeting-synthesis → gdrive·slack-explore · decision-checklist)"]
+
+    Meeting -.-> Future
+    subgraph Future ["7~13단계 · 추후 업데이트 예정 ⬜ (도구 미구현)"]
+        direction TB
+        S7["7 상위 결정"]
+        S8["8 스토리보드 템플릿"]
+        S9["9 PRD→스토리보드"]
+        S10["10 레거시/레퍼런스 학습"]
+        S11["11 low/mid-fi 디자인"]
+        S12["12 상세 디스크립션"]
+        S13["13 high-fi 고도화"]
+        S7 --> S8 --> S9 --> S10 --> S11 --> S12 --> S13
+    end
+```
+
 ## 커맨드
 | 커맨드 | 단계 | 설명 |
 |---|---|---|

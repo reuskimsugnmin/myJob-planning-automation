@@ -6,3 +6,5 @@ argument-hint: [engagement-slug] [--figma-pages "p1,p2"] [--local zip|dir 경로
 `domain-study` 스킬을 사용해 도메인 스터디를 수행하세요. 대상 engagement: $ARGUMENTS (생략 시 현재 작업 중인 engagement 폴더). `--figma-pages` 로 탐색할 Figma 페이지를, `--local` 로 추가 zip/폴더 경로를 전달할 수 있습니다.
 
 `.planning/sources.json` 의 노션/Figma/로컬/웹 소스를 각 소스 읽기 스킬(`notion-explore`/`figma-explore`/`local-source-ingest`)로 수집하고 `knowledge-base` 에 적재한 뒤, `research/domain-study.md` 를 생성하세요. 모든 사실에 출처를 인용하고, Figma 탐색 페이지가 지정되지 않았으면 사용자에게 확인하세요. 폭이 넓은 대량 읽기는 `research-agent` 서브에이전트로 격리하되 Figma는 직렬로 진행하세요.
+
+완료 후 핵심 레거시 정책·영향 범위·가장 큰 빈틈을 보고하고, **다음 단계로 `/tech-research`(4단계)를 제안**하세요. tech-research 완료 전에는 `/prd`로 넘어가지 마세요(리서치는 `domain/reference → tech` 순서로 모두 끝낸 뒤 PRD).

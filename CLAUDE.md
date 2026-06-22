@@ -93,7 +93,11 @@ sandbox/                                  # 개발 테스트용 (gitignore)
 워크스페이스 레포에서 `cd` 후 실행:
 
 - `/new-planning <노션-티켓-URL>` — 1~5단계 전체 파이프라인(인입→리서치 병렬→PRD→SDD)
-- 단계별(1~6): `/intake` `/domain-study` `/tech-research` `/prd` `/sdd` `/meeting-synthesis`
+- 단계별 순서(각 커맨드는 완료 시 다음 단계를 제안):
+  - 레거시: `/intake` → `/domain-study` → `/tech-research` → `/prd` → (게이트 통과 시) `/sdd` → `/meeting-synthesis`
+  - 신규: `/intake` → `/reference-research` → `/tech-research` → `/prd` → (게이트 통과 시) `/sdd` → `/meeting-synthesis`
+  - 혼합: 3단계에서 `/domain-study` + `/reference-research` 둘 다 수행 후 `/tech-research`로.
+  - **불변식**: 3단계 리서치(domain/reference)만 끝내고 `/prd`로 직행하지 않는다. `/prd` 진입 시 `research/tech-research.md` 부재면 게이트가 멈추고 사용자에게 확인(단순 건은 명시적 생략 허용).
 - 디자인 단계(8~13, PRD 확정 후 **명시적 별도 호출**): `/storyboard`(8~11 화면 실현) → `/design-desc`(12 디스크립션+동기화) → `/design-sync`(동기화 검증). high-fi 고도화·디자인 취향은 사람.
 
 산출물: `engagements/<slug>/` 아래 `00-project-brief.md`, `research/{domain-study,tech-research}.md`, `PRD.md`, `SDD.md`, `design/{policy-table.md, descriptions, backups, logs}`. 레거시 지식베이스는 워크스페이스 공용 `.planning/knowledge-base/`(policy-registry/entity-glossary/source-manifest, `raw/`는 gitignore). 디자인 단계 관측 로그는 `.planning/logs/`(gitignore).
@@ -133,7 +137,8 @@ Skill과 Sub-agent는 경쟁이 아니라 **축이 다르다**. "둘 다 만들�
 - **커맨드 추가**: `plugins/product-planning/commands/<name>.md` (frontmatter `description`+`argument-hint`).
 - **검증(E2E)**: 워크스페이스에서 실제(또는 과거) 티켓으로 `/new-planning` 실행 → 과거 사람 작성 PRD/SDD와 비교해 템플릿·프롬프트 보정.
 - **버전**: `plugin.json`+`marketplace.json`의 `version` 동시 갱신(SemVer). 자세한 기여 규칙은 `CONTRIBUTING.md`.
-- **커밋/푸시**: 사용자가 요청할 때만. push 원격은 아직 없음(사용자가 GitHub 연결 예정).
+- **커밋/푸시**: 사용자가 요청할 때만. 원격은 `origin` → `github.com/reuskimsugnmin/myJob-planning-automation` (main 추적).
+- **main 브랜치 정책**: main에 **PR 필수 룰셋**이 걸려 있으나 **레포 소유자(사용자)는 bypass 허용** → 소유자는 main에 직접 push-merge, **팀 동료는 PR 리뷰를 거쳐야** 머지된다. 따라서 사용자가 커밋·푸시를 요청하면 main 직접 푸시가 정상 동작이다(bypass). 팀 동료 기여 흐름을 다룰 때만 브랜치→PR을 따른다.
 
 ## 10. 현황 · 로드맵
 

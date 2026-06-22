@@ -29,6 +29,43 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 
 ## 도구 구성
 
+아래 플로우차트는 각 도구가 **어떤 워크플로우 작업**을 맡는지, 그리고 **인입 후 레거시/신규 분기**가 어떻게 갈라지는지를 보여줍니다. 둥근 노드는 시작/HITL 분기, 사각 노드는 `커맨드 · 단계`와 그 안에서 쓰는 스킬(괄호)입니다. 점선 박스(7~13단계)는 아직 도구가 만들어지지 않아 *추후 업데이트 예정*입니다.
+
+```mermaid
+flowchart TD
+    Start([노션 티켓 인입]) --> Intake["/intake · 1~2단계<br/>티켓 인입·히스토리·요건 파악<br/>(planning-intake → notion-explore)"]
+    Intake --> Type{"레거시 / 신규?<br/>HITL 유형 판정"}
+
+    Type -->|레거시 개선| Domain["/domain-study · 3단계<br/>레거시 정책·도메인 스터디 종합<br/>(domain-study → notion·figma·local·web-explore → knowledge-base)"]
+    Type -->|신규 기능·화면| Ref["/reference-research · 3-alt단계<br/>동일 도메인 레퍼런스 리서치 · UX 패턴만<br/>(reference-research → web·image·figma-explore → knowledge-base)"]
+    Type -->|혼합| Both["둘 다 수행"]
+
+    Domain --> Tech
+    Ref --> Tech
+    Both --> Tech
+
+    Tech["/tech-research · 4단계<br/>요구사항·기술문서·API 명세 정리<br/>(tech-research → web-explore+Context7 · notion · local → tech-registry)"]
+    Tech --> PRD["/prd · 5단계<br/>빅테크 PM PRD(원페이저+상세)<br/>(prd-author → decision-checklist · prd-sdd-editing)"]
+
+    PRD --> Gate{"SDD 필요?<br/>HITL 판단 게이트"}
+    Gate -->|예 · 큰 프로젝트| SDD["/sdd · 5단계<br/>구현 스펙 SDD(FR→SP 매핑)<br/>(sdd-author → Context7 재검증 · prd-sdd-editing)"]
+    Gate -->|아니오 · 단순 건| Meeting
+    SDD --> Meeting
+
+    Meeting["/meeting-synthesis · 6단계<br/>회의록(Google Doc)/Slack → PRD·SDD 반영<br/>(meeting-synthesis → gdrive·slack-explore · decision-checklist)"]
+
+    Meeting --> Storyboard["/storyboard · 8~11단계<br/>스토리보드·low/mid-fi 디자인 실현<br/>(storyboard-build → figma-design)"]
+    Storyboard --> DesignDesc["/design-desc · 12단계<br/>상세 디스크립션 + 동기화<br/>(design-description)"]
+    DesignDesc --> DesignSync["/design-sync · 검증<br/>디스크립션↔디자인 동기화·9항목 자동 검수"]
+
+    DesignSync -.-> Future
+    subgraph Future ["사람 몫 · Claude 보조 (도구 외)"]
+        direction TB
+        S7["7 상위 전략 결정"]
+        S13["13 high-fi 디자인 고도화"]
+    end
+```
+
 **커맨드 (11)** — 워크플로우 진입점
 
 | 커맨드 | 단계 | 설명 |
@@ -64,6 +101,7 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 
 ### 1~2단계 · 티켓 인입 + 요건 파악 + 유형 판정 ✅
 - **커맨드**: `/intake <노션-티켓-URL>`
+- **도구셋**: 스킬 `planning-intake` → 읽기 `notion-explore` · MCP `Notion` · 템플릿 `project-brief`.
 - **하는 일**: 노션 티켓을 fetch하고 연결 트리(상위·하위·relation)를 **예산 안에서** 탐색(`notion-explore`), 담당자·코멘트 resolve, 요건/일정/링크 구조화.
 - **사람 확인(HITL)**: **레거시 개선 vs 신규 기능 유형 판정** — Claude가 1차 판정하고, 애매하면 사용자에게 확인 → 이 결정이 3단계 경로를 확정합니다.
 - **산출물**: `engagements/<slug>/00-project-brief.md` (유형·3단계 경로·요건·이해관계자·미해결 의사결정 포함).
@@ -72,6 +110,7 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 유형 판정 결과에 따라 갈립니다.
 
 **(레거시 개선)** `/domain-study`
+- **도구셋**: 스킬 `domain-study` → 읽기 `notion-explore`·`figma-explore`·`local-source-ingest`·`web-explore` · 쓰기 `knowledge-base` · 서브에이전트 `research-agent`(대량 읽기 격리) · MCP `Notion`·`Figma` · 템플릿 `domain-study`.
 - **하는 일**: `sources.json` 의 레거시 소스를 소스별 읽기 스킬로 수집 → KB 적재 → 자립형 문서 종합.
   - 노션(`notion-explore`) · Figma(`figma-explore`) · 로컬 zip/폴더(`local-source-ingest`) · 웹(`web-explore`).
 - **사람 확인(HITL)**: **Figma 탐색 페이지 선정** — 파일에 페이지가 여럿이라, 미지정 시 어떤 페이지를 볼지 질문. index-first·콘텐츠 노드 우선·**페이지 단위 직렬**·완료 체크포인트.
@@ -79,6 +118,7 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 - **산출물**: `research/domain-study.md` + KB `policy-registry.yaml`·`entity-glossary.md`·`source-manifest.yaml`.
 
 **(신규 제품)** `/reference-research`
+- **도구셋**: 스킬 `reference-research` → 읽기 `web-explore`·`image-explore`·`figma-explore` · 쓰기 `knowledge-base` · 서브에이전트 `research-agent` · MCP `Figma` · 템플릿 `reference-research`.
 - **하는 일**: 동일 도메인 레퍼런스(공개 웹 `web-explore` · 화면 캡쳐 이미지 `image-explore` · Figma 레퍼런스)를 분석해 ① 도메인 주요 기능 ② 필요한 기획/정책 ③ **UX 패턴** 정리.
 - **원칙**: **UI(비주얼/컴포넌트 외형)는 학습하지 않음** — UX 패턴만 추출하고 UI는 우리 서비스에 맞게 재디자인.
 - **입력(sources.json)**: `reference.web`, `reference.images`, `figma.reference_files`.
@@ -86,6 +126,7 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 
 ### 4단계 · 기술 리서치 ✅
 - **커맨드**: `/tech-research`
+- **도구셋**: 스킬 `tech-research` → 읽기 `web-explore`(+`Context7` 최신 검증)·`notion-explore`·`local-source-ingest` · 쓰기 `knowledge-base`(`tech-registry`) · 서브에이전트 `research-agent` · MCP `Context7`·`Notion` · 템플릿 `tech-research`.
 - **하는 일**: 신규 개발에 필요한 기술 요건·API 명세 수집 — 공개 웹/문서(`web-explore`, public `notion.site`는 `notion-fetch`로) · 사내 노션(`notion-explore`) · 로컬 zip의 PDF 등(`local-source-ingest`) · 라이브러리는 **Context7로 최신 검증**.
 - **저장 정책**: 내부/파트너 **API·연동 스펙**은 KB `tech-registry.yaml`(version+as_of+요건매핑)에. 서드파티 **라이브러리/SDK는 캐시 금지** — manifest에 버전+as_of만, **사용 시점(특히 SDD 확정 전) Context7 재검증**.
 - **입력(sources.json)**: `web.tech_docs`/`context7_libraries`, `local.archives`/`doc_dirs`.
@@ -93,6 +134,8 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 
 ### 5단계 · PRD / (조건부)SDD ✅
 - **커맨드**: `/prd` → (필요 시) `/sdd`
+- **도구셋(PRD)**: 스킬 `prd-author` → `decision-checklist`(기획 공백) · `prd-sdd-editing`(갱신 시) · 템플릿 `PRD`. (입력: `research/*.md` + KB. **진입 게이트**: `research/tech-research.md` 부재 시 멈추고 사용자 확인.)
+- **도구셋(SDD)**: 스킬 `sdd-author` → `decision-checklist`(기술 결정) · `prd-sdd-editing` · `Context7` 재검증 · 템플릿 `SDD`.
 - **하는 일(PRD)**: **글로벌 빅테크 PM 방법론**(Working Backwards·Cagan·Lenny·Shreyas)으로 PRD 작성 — 상단 **원페이저 요약** + 하단 **상세 요구사항**(유저스토리 US-n / 기능명세 FR-n + 수용기준 Given/When/Then / NFR). 사람·AI(다운스트림 디자인 자동화) 모두가 읽도록 구조화.
 - **기획 공백 처리(`decision-checklist`)**: 아직 못 정한 정책/기획/기술 요건은 본문에 `추가 기획 필요 → D-n` 마커 + 하단 **의사결정 체크리스트**(추천안 → **임시 채택**으로 초안 진행 → 결정상태 ☐/☑ · **최종 결정안** 컬럼). 나중에 결정되면 영향 범위(FR/§)를 따라 본문을 빠르게 교체.
 - **사람 확인(HITL)**: **PRD↔SDD 판단 게이트** — 멀티기능·복잡 아키텍처면 *왜 PRD만으로 부족한지* 설명하고 SDD 작성 여부를 확인. 단순 건은 PRD만으로 종료.
@@ -101,6 +144,7 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 
 ### 6단계 · 회의록 종합 ✅
 - **커맨드**: `/meeting-synthesis --gdoc <URL>` 또는 `--slack <스레드-URL>`
+- **도구셋**: 스킬 `meeting-synthesis` → 읽기 `gdrive-explore`·`slack-explore` · `decision-checklist`(최종 결정 반영) · `prd-sdd-editing`(편집 불변식) · MCP `Google Drive`·`Slack` · 템플릿 `meeting-log`.
 - **하는 일**: Gemini 자동 회의록(Google Doc, `gdrive-explore`) 또는 Slack 스레드(`slack-explore`)를 읽고, 현재 PRD/SDD와 대조해 **수정·추가·삭제·갱신** 반영. 결정된 의사결정(D-n)은 체크리스트 **최종 결정안 + ☑**으로 확정하고 영향 범위 따라 본문 갱신.
 - **사람 확인(HITL)**: **자의적 해석 금지** — 회의 내용 중 이해/맥락이 모호하면 절대 추측하지 않고 사용자에게 확인 후 반영.
 - **입력**: 회의 소스 링크(인자). `sources.json` `gdrive.meeting_notes_folder`·`slack` 참고.
