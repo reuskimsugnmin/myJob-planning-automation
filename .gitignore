@@ -7,5 +7,6 @@ sandbox/
 .idea/
 .vscode/
 
-# 로그
+# 로그 (디자인 단계 관측 훅이 워크스페이스 ./.planning/logs 에 기록 — 워크스페이스 레포에서도 gitignore 권장)
 *.log
+.planning/logs/

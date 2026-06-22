@@ -69,17 +69,21 @@ PM/PD(제품 기획자/디자이너)의 **13단계 제품 기획 워크플로우
 .claude-plugin/marketplace.json          # 마켓플레이스 매니페스트
 plugins/product-planning/
   .claude-plugin/plugin.json             # 플러그인 매니페스트
-  commands/    new-planning, intake, domain-study, reference-research, tech-research, prd, sdd, meeting-synthesis (.md)
+  commands/    new-planning, intake, domain-study, reference-research, tech-research, prd, sdd, meeting-synthesis,
+               storyboard, design-desc, design-sync (.md)
   skills/      # 방법론 단일 소스
     planning-intake, domain-study, reference-research, tech-research, prd-author, sdd-author, meeting-synthesis
     notion-explore, figma-explore, local-source-ingest, web-explore, image-explore, slack-explore, gdrive-explore  # 소스별 "읽기" 방법론(7소스)
+    figma-design, storyboard-build, design-description    # 디자인 단계(8~13) "쓰기" 방법론
     knowledge-base                                        # source-agnostic "쓰기"(파일 KB)
     decision-checklist                                    # 기획 공백→추천안→임시채택→최종결정 (PRD/SDD 공용)
     prd-sdd-editing                                       # PRD/SDD 편집 불변식(ID 안정성·유실 방지·출처/changelog) 단일 소스
   agents/      research-agent.md          # 격리 수집·digest만(방법은 위 읽기 스킬 참조)
   hooks/       hooks.json + session-start.sh   # 워크스페이스/KB 감지→소스·컨벤션 주입 + 필요 MCP 점검(감지/설치 안내)
+               log-figma.sh, log-write.sh, session-stop.sh  # 디자인 단계 관측 로그(워크스페이스 ./.planning/logs)
   templates/   PRD, SDD, domain-study, reference-research, tech-research, project-brief, meeting-log (.template.md)
                knowledge-base/{policy-registry,entity-glossary,tech-registry,source-manifest}.template
+               design/{policy-table,design-description,design-log}.template.md  # 디자인 단계 산출물
   config/      sources.example.json       # 소스 레지스트리 스키마(실제 값 아님)
 sandbox/                                  # 개발 테스트용 (gitignore)
 ```
@@ -90,12 +94,13 @@ sandbox/                                  # 개발 테스트용 (gitignore)
 
 - `/new-planning <노션-티켓-URL>` — 1~5단계 전체 파이프라인(인입→리서치 병렬→PRD→SDD)
 - 단계별 순서(각 커맨드는 완료 시 다음 단계를 제안):
-  - 레거시: `/intake` → `/domain-study` → `/tech-research` → `/prd` → (게이트 통과 시) `/sdd`
-  - 신규: `/intake` → `/reference-research` → `/tech-research` → `/prd` → (게이트 통과 시) `/sdd`
+  - 레거시: `/intake` → `/domain-study` → `/tech-research` → `/prd` → (게이트 통과 시) `/sdd` → `/meeting-synthesis`
+  - 신규: `/intake` → `/reference-research` → `/tech-research` → `/prd` → (게이트 통과 시) `/sdd` → `/meeting-synthesis`
   - 혼합: 3단계에서 `/domain-study` + `/reference-research` 둘 다 수행 후 `/tech-research`로.
   - **불변식**: 3단계 리서치(domain/reference)만 끝내고 `/prd`로 직행하지 않는다. `/prd` 진입 시 `research/tech-research.md` 부재면 게이트가 멈추고 사용자에게 확인(단순 건은 명시적 생략 허용).
+- 디자인 단계(8~13, PRD 확정 후 **명시적 별도 호출**): `/storyboard`(8~11 화면 실현) → `/design-desc`(12 디스크립션+동기화) → `/design-sync`(동기화 검증). high-fi 고도화·디자인 취향은 사람.
 
-산출물: `engagements/<slug>/` 아래 `00-project-brief.md`, `research/{domain-study,tech-research}.md`, `PRD.md`, `SDD.md`. 레거시 지식베이스는 워크스페이스 공용 `.planning/knowledge-base/`(policy-registry/entity-glossary/source-manifest, `raw/`는 gitignore).
+산출물: `engagements/<slug>/` 아래 `00-project-brief.md`, `research/{domain-study,tech-research}.md`, `PRD.md`, `SDD.md`, `design/{policy-table.md, descriptions, backups, logs}`. 레거시 지식베이스는 워크스페이스 공용 `.planning/knowledge-base/`(policy-registry/entity-glossary/source-manifest, `raw/`는 gitignore). 디자인 단계 관측 로그는 `.planning/logs/`(gitignore).
 
 ## 7. 절대 규칙 (이 레포에서 작업할 때)
 
@@ -123,7 +128,7 @@ Skill과 Sub-agent는 경쟁이 아니라 **축이 다르다**. "둘 다 만들�
   - **HITL 게이트**: 사용자 실시간 확인이 필요한 결정(Figma 페이지 선정·완료 체크포인트, 노션 트리 예산 초과 확인)은 **메인 컨텍스트(Skill)** 가 소유. sub-agent는 게이트를 수행하지 않고 호출자에 위임.
   - **기획자**(PRD/SDD): **Skill만**(sub-agent 비채택 — 입력이 정제된 산출물이라 격리 이득 작고, 의사결정·리뷰가 메인 컨텍스트에서 일어나야 함. PRD/SDD 편집 "전담 sub-agent"도 같은 이유로 비채택: HITL 단절·cold start 상태 유실·격리 이득 작음 → 대신 **공유 스킬**로 일관성 확보). `prd-author`=빅테크 PM 역할·원페이저+상세·PRD↔SDD 판단 게이트, `sdd-author`=게이트 통과 시 상세 스펙. 기획 공백 처리는 `decision-checklist`, **기존 문서 편집 불변식(ID 안정성·유실 방지·출처/changelog·구조 보존)은 `prd-sdd-editing` 스킬 단일 소스**로 prd-author/sdd-author/meeting-synthesis/decision-brief가 참조. 작성 중 새 원자료가 필요하면 그때만 `research-agent` 재사용.
   - **회의록 종합**(meeting-synthesis): **Skill만**. 회의록을 읽어 PRD/SDD를 편집하고, 모호하면 사용자 확인이 필요(HITL)·결정 반영이 메인 컨텍스트에서 일어나야 함. 읽기는 `gdrive-explore`/`slack-explore` 참조.
-  - **디자인**: **혼합**. 레거시 Figma 학습(대량 읽기)·병렬 화면 생성 = Sub-agent. Figma 쓰기 방법론은 `figma-use` 등 Skill이 소유.
+  - **디자인**(단계 8~13): **쓰기는 Skill만**(v0.7 결정). Figma 디자인 *쓰기* 는 단일 파일 변형 + 모드선택·비주얼게이트·완료체크 HITL이 많아 메인 컨텍스트(Skill)가 소유해야 하고 단일 파일에 복수 에이전트 동시 디스패치가 금지되므로(PRD/SDD와 동일 논리) sub-agent를 두지 않는다. `figma-design`(쓰기 원시·3세트 구조·골격·clone/조립·swap 결함·심볼·폰트, Figma MCP `/figma-use` 준수) / `storyboard-build`(8~11 오케스트레이션·모드 A·B·비주얼 게이트) / `design-description`(12 디스크립션+동기화·뱃지 매칭·claim↔노드 대조표). 레거시/레퍼런스 Figma *읽기*(대량)는 기존 `figma-explore`+`research-agent` 재사용.
 - ✅ **정리 완료(v0.2)**: `research-agent.md`의 수집 절차 중복 제거 → 소스 읽기 스킬 참조로 전환. 노션 읽기 로직은 `notion-explore`로 통합(intake도 이를 참조). agent는 역할·도구·출력계약만 보유.
 
 ## 9. 개발 방법
@@ -143,7 +148,7 @@ Skill과 Sub-agent는 경쟁이 아니라 **축이 다르다**. "둘 다 만들�
 - ✅ **Phase 1.7 (v0.4) — 3단계 신규 제품 분기(레퍼런스 리서치)**: intake 2단계에 **프로젝트 유형 판정 게이트**(자율 판정·애매 시 사용자 확인) 추가, 신규면 `reference-research`로 분기. `image-explore`(레퍼런스 이미지 비전) 추가로 읽기 스킬 5소스, `reference-research` 스킬+템플릿+커맨드 신설(**UI 학습 금지·UX 패턴만**), new-planning 분기. (E2E 단계적 검증 예정)
 - ✅ **Phase 1.8 (v0.5) — 5단계 PRD/SDD 고도화**: 빅테크 PM 방법론 역할, PRD **원페이저 요약+상세 요구사항**(US/FR/수용기준/NFR) 재설계, **PRD↔SDD 판단 게이트**(조건부 SDD), `decision-checklist` 신규 스킬(기획 공백→추천안→임시채택→결정상태/최종결정 컬럼→본문 빠른 수정), AI 파싱+사람 완결 구조. (E2E 단계적 검증 예정)
 - 🟡 **Phase 2 (진행 중)**: ✅ 회의록 종합(`meeting-synthesis`, v0.6 — Google Doc/Slack 읽기 `gdrive-explore`/`slack-explore` 추가, PRD/SDD 반영·체크리스트 확정·회의 로그, 모호 시 사용자 확인 게이트). ⬜ 의사결정 브리프(`decision-brief`) — 단계 7.
-- ⬜ **Phase 3**: Figma 스토리보드·low/mid-fi 디자인·디스크립션 — 단계 8~13.
+- 🟡 **Phase 3 (진행 중, v0.7) — 디자인 단계(8~13)**: 사용자의 운영 Figma toolset을 §8 아키텍처로 이식. 스킬 3종(`figma-design`/`storyboard-build`/`design-description`, 쓰기는 Skill-only), 커맨드 3종(`/storyboard`/`/design-desc`/`/design-sync`), 디자인 템플릿 3종, 관측 훅 3종(CWD `.planning/logs` 상대화), `sources.json` `figma.design_system_files` 추가. ⬜ E2E(과거 PRD+실제 Figma로 검증·보정), high-fi 고도화(단계 13)는 사람.
 - ⬜ **Phase 4**: 팀 배포 + 반복 개선 루프.
 
 ## 11. 더 깊은 맥락
