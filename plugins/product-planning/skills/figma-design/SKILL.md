@@ -29,53 +29,22 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
 - 화면 추가·교체 후 **뱃지(label-group/text-area)는 항상 최상위 z-order** 로(`parent.appendChild(badge)`) — 새 프레임 아래로 가려지지 않게.
 - **뱃지 배치(운영 양식)**: 뱃지는 `label-group` 그룹으로 **SECTION 노드의 직속 자식**(디자인 프레임의 형제·최상위 z)으로 두어 디자인 프레임과 **겹치지 않게** 좌측 가장자리에 붙인다(요소 edge 옆). **좌표는 부모 기준 상대좌표**다 — SECTION 자식은 섹션 상대, auto-layout 프레임 내부에 둘 땐 `layoutPositioning="ABSOLUTE"` + 프레임 상대. **페이지 절대좌표를 주면 화면 밖/바닥으로 빠진다**(흔한 실수).
 - 신규/수정 화면은 항상 이 3세트 구조로 맞춘다.
-- **수직 행 리플로우 — 규칙이 아니라 "실행 패스"(겹침 금지).** ★ `SB_Templates` 카드·SECTION·Description은 **부모 auto-layout 없이 페이지에 절대좌표로 놓인 독립 형제**이고 `SB_Templates`는 **고정 높이 인스턴스**다 → Description가 길어져도 **자동으로 안 커지고 안 밀린다.** 반드시 아래 **리플로우 패스를 명시적으로 실행**해야 한다(규칙만 적고 안 돌리면 미반영):
-  - 행을 위→아래로 순회하며 `rowTop` 누적. 헤더오프셋 = SECTION/Description top − SB top(예 142).
-  - **`SB_Templates` 인스턴스 height를 강제 리사이즈**: `sb.resize(폭, 헤더오프셋 + max(SECTION.height, Description.height) + pad(≈40))` — 카드가 콘텐츠 전체를 덮게(인스턴스 resize 가능; 막히면 보고). SB_Header 밴드는 상단 고정·카드 바디가 늘어남.
-  - 같은 행 `SB.y = rowTop`, `SECTION.y = Description.y = rowTop + 헤더오프셋`. 다음 행 `rowTop += SB.height + gap(≈60)`.
-  - **SECTION 노드도 자기 콘텐츠를 담게 리사이즈**: 폰을 2행(오버레이 등)으로 추가하면 SECTION 높이가 콘텐츠보다 작아 디자인이 섹션 밖으로 빠진다 → `sec.resizeWithoutConstraints(폭, 자식 최대 bottom − sec.y)`. (SB 카드만 키우고 SECTION을 안 키운 게 e02 "섹션이 디자인 미포함" 결함.)
-  - 리플로우 후 `get_metadata`/`get_screenshot` 으로 카드가 Description를 덮고 **SECTION이 모든 폰을 포함**(`section.height ≥ 자식 extent`)하며 행 간 겹침 0 확인.
-- **자동 발견 리플로우 루틴(하드코딩 id 금지 · 재사용).** 특정 화면 id를 박지 말고 페이지에서 행을 **스스로 찾아** 리플로우한다 — 어떤 스토리보드 페이지에도 동작:
-  ```
-  // 1) 행 발견: SB_Templates 인스턴스를 Y 오름차순 정렬
-  rows = page.children.filter(n => n.type==='INSTANCE' && n.name==='SB_Templates').sort(byY)
-  for each sb (위→아래, rowTop = 첫 행 sb.y 부터 누적):
-    // 2) 같은 행의 SECTION·Description 매칭(Y 근접 + X 위치)
-    sec  = page.children.find(SECTION, |n.y-(sb.y+OFF)|<선, n.x≈36)         // 디자인 섹션
-    desc = page.children.find(FRAME name='Description', |n.y-(sb.y+OFF)|<선, n.x≈1421)
-    OFF = sec.y - sb.y (첫 행에서 측정; 보통 142)
-    // 3) 리사이즈 + cascade — desc는 먼저 AUTO(콘텐츠 hug)로, 높이는 실제 콘텐츠 extent로
-    desc.primaryAxisSizingMode='AUTO'   // FIXED면 오버플로해도 height 안 변해 아래 행 침범
-    secBot = realBottom(sec); descBot = realBottom(desc)   // = absoluteBoundingBox + 자식 최대 extent (height 직접 사용 금지)
-    // ★ SECTION도 자기 콘텐츠(폰 2행 등)를 담게 리사이즈 — SB 카드만 키우면 섹션이 디자인을 못 담는다(실패: e02 2폰행이 섹션 밖)
-    sec.resizeWithoutConstraints(sec.width, Math.ceil(secBot - sec.absoluteBoundingBox.y))
-    rowH = OFF + max(secBot-sec.y, descBot-desc.y) + pad(40)
-    sb.resize(sb.width, rowH); sb.y=rowTop; sec.y=desc.y=rowTop+OFF
-    // 4) ★ SB 라벨 자동 동기화 — [화면 ID]·타이틀을 섹션명에서 파생(stale 드리프트 방지)
-    sp = sec.name.indexOf(' '); id = sp>0?sec.name.slice(0,sp):sec.name; title = sp>0?sec.name.slice(sp+1):sec.name
-    sb.findOne(TEXT name='[화면 ID]').characters = '['+id+']'   // 폰트 로드 후
-    sb.findOne(TEXT name='화면 / 기능명').characters = title     // 'e05 본인인증' → [e05] / 본인인증
-    rowTop += rowH + gap(60)
-  return 매칭 카운트(행수·미매칭) // dry-run 보고로 오매칭 0 확인
-  ```
-  - **★ 리플로우 대상 페이지 = 편집한 SECTION의 parent 페이지.** `figma.currentPage`(호출 간 첫 페이지로 리셋)·문서 첫 페이지를 가정 금지 — 디자인 SECTION·Description이 별도 페이지에 있을 수 있고(스토리보드가 자체 페이지), 첫 페이지엔 **무관한 다른 스토리보드**가 있을 수 있다. 편집 노드에서 `node.parent`(PAGE)로 실제 페이지를 구해 **그 페이지의 행만** 리플로우한다(실패 사례 e01: 디스크립션이 별도 페이지 `466:5338`인데 첫 페이지 `0:1`엔 Taxi 스토리보드 → 첫 페이지를 스캔하면 무관 스토리보드를 옮길 뻔).
-  - **★ idempotency 검산(타 행 오이동 방지).** cascade 적용 전, 편집 행 외 **미편집 행 1~2개**의 계산 `rowH = OFF + max(secExt, descExt) + PAD`가 현재 SB height와 일치하는지 먼저 검산한다. 불일치면 OFF/GAP/PAD 상수가 페이지 컨벤션과 달라 타 행을 잘못 이동시킨다 → 상수 보정 후 진행(편집 행 + 그 아래 cascade만 움직여야 정상. e01에선 e02/e03/e04 SB height 일치 확인 후 진행 → 타 행 오이동 0).
-  - **★ `desc.height`(및 `sec.height`)를 직접 신뢰하지 말 것.** Description은 `primaryAxisSizingMode='AUTO'`여야 하고, 행 높이·겹침은 **`absoluteBoundingBox` + 자식 콘텐츠 최대 extent**(`realBottom`)로 계산한다 — FIXED 프레임은 콘텐츠가 넘쳐도 height가 안 변해 검사를 속인다(실패 사례 e05: 697 frame에 1204 콘텐츠 → e-loading 침범).
-  - **완료 게이트(필수).** 디자인/디스크립션을 **편집한 커맨드는 마감에서 이 루틴을 항상 실행**한다(`storyboard-build`/`design-description`/`/design-sync`). 사용자가 따로 요청하지 않아도 자동. *단* Figma에서 손으로 직접 편집한 경우는 자동이 아니므로 `/design-sync`로 1회 트리거.
-  - 미매칭(비표준 행: SB 없음/Description 이름 불일치)은 건너뛰고 **카운트로 보고**(임의 이동 금지).
+- **수직 행 리플로우 — 규칙이 아니라 "실행 패스"(겹침 금지).** `SB_Templates` 카드·SECTION·Description은 **부모 auto-layout 없이 절대좌표로 놓인 독립 형제** + `SB_Templates`는 **고정 높이 인스턴스**라 Description가 길어져도 자동으로 안 커지고 안 밀린다 → **반드시 리플로우 패스를 명시적으로 실행**한다(하드코딩 id 금지·페이지에서 행을 스스로 발견 → SB 카드 height 리사이즈 + SECTION 콘텐츠 포함 리사이즈 + 행 Y cascade + SB 라벨 섹션명 동기화).
+  - **완료 게이트(필수).** 디자인/디스크립션을 **편집한 커맨드는 마감에서 이 루틴을 항상 실행**한다(`storyboard-build`/`design-description`/`/design-sync`). 사용자 요청 불필요·자동. *단* Figma 손편집은 `/design-sync`로 1회 트리거.
+  - **상세 절차는 `references/reflow.md`를 읽어 따른다** — 자동발견 루틴(SB→SECTION/Description 매칭)·`realBottom` 계산(`node.height` 금지)·idempotency 검산(타 행 오이동 방지)·parent 페이지 한정·4단계 라벨 동기화 코드·미매칭 보고.
 
 ## B. 화면 설계 4단계 (이 순서로)
 2단계(골격 세팅)와 3단계(세부 UX)를 **분리**하는 게 핵심 — 2에서 멈추면 1:1 교체가 되어 설계가 빠진다.
 
 1. **벤치마킹(★ 하드 선행 — 스킵 금지)** — 동종 서비스 같은 유형 화면을 `lazyweb`(`lazyweb_search`)·웹 검색·`reference-research.md`로 조사해 검증된 UX 패턴·정보 위계·핵심값 파악. "이 화면에서 사용자가 가장 먼저 확인/결정하는 값"을 정의. **이걸 건너뛰면 타 도메인 화면을 답습**하게 된다(도메인 다른데 똑같아 보이는 가장 잦은 치명 실패). 사용자 레퍼런스 Figma가 있으면 IA/패턴만 학습(UI 학습 금지).
 2. **기본 레이아웃 골격** — 연결 라이브러리/예시 화면의 컴포넌트로 표준 골격을 먼저 세운다(아래 ++Top 패턴). "재료 모으고 뼈대 세우기"까지.
-3. **세부 UX 구성** — 골격 위에 1에서 정한 정보 위계대로 핵심값 강조·상태별 변형·액션 그룹화·여백·플로팅 CTA 설계. 기성 컴포넌트가 맥락에 안 맞으면 베리에이션/재구성.
+3. **세부 UX 구성** — 골격 위에 1에서 정한 정보 위계대로 핵심값 강조·상태별 변형·액션 그룹화·여백·플로팅 CTA 설계. 기성 컴포넌트가 맥락에 안 맞으면 베리에이션/재구성. **★ 부득이 자작 TEXT를 만들면 그 자리에서 즉시 HPDS 텍스트 스타일·색 토큰을 바인딩한다**(§K로 미루지 말 것 — §K 게이트는 안전망).
 4. **디스크립션** — 완성 디자인을 보고 뱃지·디스크립션 작성·동기화 → `design-description` 스킬.
 
 ## C. 표준 화면 골격 (++Top / Body / ++Bottom — 고정 영역 그룹핑)
 화면은 **상단 고정(++Top) · 스크롤 콘텐츠(Body) · 하단 고정(++Bottom)** 3영역으로 나눈다. 상·하단 고정 영역은 콘텐츠와 **별도 프레임으로 그룹핑**한다(평면으로 흩지 않는다 — 운영 레이어 컨벤션).
 - **`++Top`(모든 화면 필수, 화면 최상단 고정 프레임):** `Notch`/`UI/Status Bar` + TopAppBar(`header/main` 등). 세로 auto-layout `++Top` 1개로 묶는다.
-- **`Body`(스크롤 콘텐츠):** (제목 필요 시) `title/24_16` 등 공통 타이틀 컴포넌트 + 입력/콘텐츠 영역. 제목·입력은 **raw TEXT 금지** — DS 컴포넌트 인스턴스로(§L). 각 요소는 실제 컴포넌트. **좌우 콘텐츠 거터 = 24**(운영 기준, 레퍼런스 Container x=24). 고정 헤더/풋터 DS 컴포넌트는 자체 패딩을 따른다. ★ Body가 auto-layout이면 거터는 **`paddingLeft/Right=24`** 로 주고 구조 자식은 **`layoutSizingHorizontal='FILL'`**(고정폭 좌측정렬은 좌우 비대칭 거터를 만든다 — 자식 `.x`만 바꾸면 Figma가 ABSOLUTE로 전환돼 거터가 어긋남). **`content`/`Agreement` 같은 콘텐츠 프레임은 ABSOLUTE 금지 → Body 자식으로 in-flow(`layoutPositioning='AUTO'`) + `FILL`**(거터는 Body padding, 세로 위치는 gap). 정본 예시 `383:3923`.
+- **`Body`(스크롤 콘텐츠):** (제목 필요 시) `title/24_16` 등 공통 타이틀 컴포넌트 + 입력/콘텐츠 영역. 제목·입력은 **raw TEXT 금지** — DS 컴포넌트 인스턴스로(§L). 각 요소는 실제 컴포넌트. **★ DS 컴포넌트가 없어 부득이 자작 TEXT를 둘 땐, 만드는 즉시 HPDS 텍스트 스타일(`setTextStyleIdAsync`)+색 변수를 바인딩한다**(폰트 로드(§E)는 편집 전제일 뿐 타이포 토큰 적용이 아니다 — §K로 미루지 말고 생성 시점에, §K는 안전망). **좌우 콘텐츠 거터 = 24**(운영 기준, 레퍼런스 Container x=24). 고정 헤더/풋터 DS 컴포넌트는 자체 패딩을 따른다. ★ Body가 auto-layout이면 거터는 **`paddingLeft/Right=24`** 로 주고 구조 자식은 **`layoutSizingHorizontal='FILL'`**(고정폭 좌측정렬은 좌우 비대칭 거터를 만든다 — 자식 `.x`만 바꾸면 Figma가 ABSOLUTE로 전환돼 거터가 어긋남). **`content`/`Agreement` 같은 콘텐츠 프레임은 ABSOLUTE 금지 → Body 자식으로 in-flow(`layoutPositioning='AUTO'`) + `FILL`**(거터는 Body padding, 세로 위치는 gap). 정본 예시 `383:3923`.
 - **`++Bottom`(하단 고정 프레임, 1차 액션·내비 화면):** 화면 최하단에 고정되는 영역을 하나의 `++Bottom` 프레임으로 묶는다. 구성: **1차 액션 CTA `btn54_main_set`(풀폭)** + 하단 시스템 바(`UI/Navigation Bar`/`Home Indicator`). CTA만 있고 내비가 없으면 CTA + Home Indicator. 목록·홈 유형은 탭 `Navigation Bar`.
 - 인식 규칙: ⓐ 모든 화면 = `++Top` + (하단 고정 필요 시) `++Bottom` ⓑ 제목 화면 = Body에 `title/24_16` ⓒ "선택→다음/구매/확인" 1차 액션 화면 = `++Bottom`에 `btn54_main_set`.
 - 참조 정본: HPDS 예시 화면 `app_loan_012`(`NbiTRVYBbGXf3PyBMwxYs1` 36146:106685) = Top Module + title + `use_form` 리스트 / 하단 `btn54_main_set` + Home Indicator. 같은 유형 화면은 이 구조를 따른다.
@@ -97,22 +66,13 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
 - 신규 화면 Y 좌표 = 마지막 화면 Y + 화면 높이 + 200(gap).
 
 ## E. 텍스트·폰트
-- 폰트 로드 순서: **기존 폰트 → Pretendard Regular → Inter Regular → Noto Sans KR**. `loadFontAsync` 없이 텍스트 수정 금지.
-- mixed 폰트는 `getRangeFontName` 루프로 전수 로드 후 수정.
+- 폰트 로드 순서: **기존 폰트 → Pretendard Regular → Inter Regular → Noto Sans KR**. `loadFontAsync` 없이 텍스트 수정 금지. mixed 폰트는 `getRangeFontName` 전수 로드 후 수정. (상세 `references/node-ops.md`)
 
 ## F. 컴포넌트 swap·삽입 결함 3종 (반드시 점검)
-1. **swap 후 색·모양 이상** = 이전 컴포넌트의 per-vector fill 오버라이드 잔재(어두운 variant→밝은 variant 인데 일부 벡터가 어두운 색). → `inst.resetOverrides()` 후 `get_screenshot` 확인.
-2. **auto-layout 리스트에 항목 추가 시 FIXED 높이 수동 확장 금지** = 콘텐츠 auto-grow + 높이 추가 → 팬텀 여백(`primaryAxisAlignItems=MAX` 면 상단 빈공간). → 컨테이너 `primaryAxisSizingMode='AUTO'`(HUG).
-3. **★ 삽입/clone 후 높이 붕괴·흰 여백 = hug 미처리(가장 잦은 삽입 에러).** 컴포넌트를 auto-layout에 append하면 종종 ① `layoutGrow=1`/`lsV='FILL'`로 **높이가 1px로 붕괴**(숨겨져 보임), ② FIXED 프레임이 visible 콘텐츠보다 훨씬 커서 **흰 여백**(완료헤드처럼 hidden 자식 자리 남음)이 생긴다. **휴리스틱: 화면에 흰 여백이 많거나 컴포넌트가 안 보이면 hug 결함을 의심**한다. → **삽입 후 hug 검증·자동수정**: auto-layout 자식이면 `layoutGrow=0` + `layoutSizingVertical='HUG'`(프레임이면 `primaryAxisSizingMode='AUTO'`). 이 검증은 `storyboard-build` §9 #9로 **마감 시 자동 audit**된다. 점검 스크립트: `scripts/hug-fix.js`(대상 노드 `n`에 바인딩해 실행).
-- 같은 계층 구조의 컴포넌트만 `swapComponent` 가능. 구조가 다르면 수동 교체 후 "수동 확인 필요" 명시.
-- **교체 시 옛 요소는 완전 삭제.** 새 인스턴스를 옛 그룹 위에 얹지 말 것(잔여 stroke/fill/radius/padding → 이중 테두리·겹침).
-- **★ swap/교체 대상은 하드코딩 노드 ID 금지 — 내용·역할로 탐지.** 타일·카드·반복 요소의 자식 ID가 **균일(타일마다 +N)하다고 가정하면 엉뚱한 노드를 건드린다**(실패: 국기 교체 시 row2 이모지 ID를 +4 균일로 가정 → 실제론 국가명 ID라 **국가명을 이모지로 착각해 숨김**). 각 컨테이너 안에서 **역할로 찾는다**: 이모지=`/[\u{1F1E6}-\u{1F1FF}]|\p{Extended_Pictographic}/u`(**국기 이모지는 Regional Indicator라 `Extended_Pictographic`만으로는 못 잡음**), 카운트=키워드(`개`/`상품`), 이름=나머지 텍스트. 교체 후 **이모지 노출 0 · 이름 노출 유지**를 반복 컨테이너 전수 검증(반복 요소는 한 곳만 보지 말 것).
+swap/삽입 시 ① swap 후 색·모양 이상(per-vector fill 잔재 → `resetOverrides`) ② FIXED 높이 수동확장 팬텀여백 ③ **hug 미처리 붕괴·흰여백**(가장 잦음 → `scripts/hug-fix.js`, `storyboard-build` §9 #9 자동 audit)을 점검한다. 같은 계층만 `swapComponent`·옛 요소 완전삭제·**swap 대상은 하드코딩 ID 금지(역할로 탐지)**. **상세·실패사례·이모지 탐지 정규식은 `references/node-ops.md`를 읽어 따른다.**
 
 ## G. 심볼(INSTANCE) 내부 수정이 안 먹힐 때
-아이콘·텍스트·색상 수정이 반영 안 되면 대상이 컴포넌트 인스턴스 내부다.
-- **판별**: 노드 id에 `I`·`;`(예 `I32:3259;8:5128`) 또는 `type==='INSTANCE'`.
-- 같은 컴포넌트 인스턴스가 여러 개(반복 행·카드)면 **전부 순회**. **같은 의미 요소가 화면마다 다른 컴포넌트로 렌더될 수 있으니("컴포넌트"가 아니라 "요소" 기준 전 화면 점검) — 목록의 INSTANCE_SWAP 아이콘 vs 상세의 독립 썸네일).**
-- ① INSTANCE_SWAP/오버라이드 있으면 `inst.setProperties(...)` → ②-a 직접 인스턴스는 `inst.swapComponent(...)` → ②-b 잠금으로 불가하면 `detachInstance()` 후 직접 교체. 수정 후 `get_screenshot` 으로 전 인스턴스 시각 검증(메타데이터 카운트만 믿지 않는다).
+아이콘·텍스트·색상 수정이 반영 안 되면 대상이 인스턴스 내부다(id에 `I`·`;` 또는 `type==='INSTANCE'`). 여러 인스턴스면 전부 순회, `setProperties`→`swapComponent`→`detachInstance` 순, 후 `get_screenshot` 검증. **상세는 `references/node-ops.md`.**
 
 ## H. zero-bespoke 마감 (출시 품질)
 구조가 선 화면을 출시 품질로 마감하는 별도 패스. **"큰 요소만 DS"가 아니라 "전 요소 DS"가 기준.**
@@ -133,11 +93,7 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
 - 페이지 작업 전 `setCurrentPageAsync(page)` 호출.
 
 ## K. UI 토큰 바인딩 (Foundation = 연결 디자인시스템, 불변)
-손으로 만든 노드도 **raw hex·raw 폰트 금지** — 색·타이포는 연결 라이브러리(예 HPDS_1.0) 변수에 바인딩한다. DS 컴포넌트 인스턴스는 자체 바인딩을 갖고 오므로 대상이 아니고, **내가 작성한 TEXT/도형/프레임**이 갭이다(가장 잦은 토큰 미적용 원인).
-- **색**: `node.fills` 의 SOLID paint를 `setBoundVariableForPaint(paint, 'color', variable)` 로 색 변수에 바인딩(텍스트 컬러·배경·라인 모두). 변수는 `search_design_system`(includeVariables) / `get_variable_defs` 로 수집(예 `Grayscale/gray900`·`Primary/primary500`·`Grayscale/gray600_text_fields`).
-- **타이포(색만으로는 불충분 — 텍스트 스타일 토큰 필수)**: 손작업 TEXT는 색 변수만이 아니라 **HPDS 텍스트 스타일**을 적용한다 — `node.setTextStyleIdAsync(style.id)`(스타일은 `figma.getLocalTextStylesAsync()`/원격 라이브러리에서 이름으로 조회). 폰트 스타일이 토큰화되지 않으면 색만 라이브러리고 타이포는 raw로 남는다(사용자가 별도 적용해야 했던 실패 사례). 공통 스타일 예: 제목 `✏️ Title/H1_B_24`·`H3_B_20`, 본문 `✏️ Body/P2_R_16`·`P3_B_14`(라벨)·`P3_R_14`, 캡션 `✏️ Caption/C1_R_12`. 스타일 적용 전 해당 폰트 로드(§E). DS에 토큰이 없을 때만 raw, 그 경우 §H 플래그.
-- **검증(★ 마감 필수 게이트 — 색만 바인딩하는 부분적용 금지)**: 작업 끝내기 전 authored 노드를 **스크립트로 전수 검사**한다. ① 배경/라인 도형: `fills[0].boundVariables.color` 有 ② 각 TEXT: `textStyleId` 有(빈 문자열/`figma.mixed` 아님). **fillBound=false 또는 styleId 없음이 1건이라도 있으면 미완료.** annotation 배지(`text-area`)·이모지/아이콘 글리프(국기·`›`·`▾` 등 텍스트스타일 부적합)는 제외. 텍스트스타일은 **타이포만 바꾸고 색(fills)은 불변**이므로 안전 — 적용 전 그 스타일의 폰트를 `loadFontAsync`(원격 스타일은 `setTextStyleIdAsync`가 내부 로드하나 실패 시 선로드 필요). 점검 스크립트: `scripts/token-audit.js`(대상 SECTION `sec`에 바인딩해 실행).
-- **변수/텍스트스타일 GUID는 캐시하지 않는다.** §M 컴포넌트처럼 카탈로그(`design-system-catalog.md`)에 적재하지 말고 필요할 때마다 `get_variable_defs`/`search_design_system`으로 이름 기반 즉시 조회한다(개수가 많고 이름 기반 조회가 더 안전 — 컴포넌트 key는 안정적이라 카탈로그에 캐시하는 §M과 다른 취급).
+손작업 노드도 **raw hex·raw 폰트 금지** — 색은 변수(`setBoundVariableForPaint`), 타이포는 텍스트 스타일(`setTextStyleIdAsync`)로 연결 라이브러리에 바인딩한다(DS 인스턴스는 대상 아님, **내가 작성한 TEXT/도형/프레임**이 갭). **★ 1차 적용 = 생성 시점**: 텍스트·도형을 만드는 그 순간 바인딩한다(§C·§L). 폰트 로드(§E)는 편집 전제일 뿐 타이포 토큰 적용이 아니다(타이포 토큰=텍스트 스타일). **아래 마감 검사는 1차 적용을 대체하지 않는 안전망 게이트**(부분적용 금지): authored 노드 전수 검사 — 도형 `fills[0].boundVariables.color` 有 + 각 TEXT `textStyleId` 有, 1건이라도 빠지면 미완료(점검 `scripts/token-audit.js`). **변수/텍스트스타일 GUID는 카탈로그에 캐시하지 않고** 매번 `get_variable_defs`/`search_design_system` 이름 조회(컴포넌트 key 캐시하는 §M과 다른 취급). **상세 절차·스타일 예시·검증 예외는 `references/tokens.md`를 읽어 따른다.**
 
 ## L. 컴포넌트 매칭 (필드 → DS 컴포넌트, bespoke 금지)
 같은 의미의 UI는 **DS의 전용 컴포넌트**로 짓는다 — 입력/선택/라벨/바텀 액션을 직접 도형·텍스트로 조립하지 않는다(§D 우선순위의 구체화). 반복 오버레이·안내·상세블록은 §M 픽스 컴포넌트 카탈로그의 정본 clone.
@@ -145,7 +101,7 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
 - **입력·선택·필드 라벨 = `use_form` 합성 컴포넌트.** `use_form`은 **상위 타이틀(라벨) + 입력 필드 + 안내/에러 메시지**를 한 묶음으로 제공하는 공통 패턴이다. 필드 위 라벨도 raw TEXT가 아니라 use_form의 타이틀로(인풋 상위 타이틀 공통 적용). 안쪽 입력은 `EL_input` variant(default/typing/end/disabled/error). **select(통신사/국가 등)** 는 정본 select use_form(`EL_Select_Flag`)을 clone — **셰브론(▼)은 내장**이라 bespoke `▾` 텍스트 금지. 국가가 아니면 앞 국기 아이콘·`flag_ellipse`를 `visible=false`. 텍스트형(이름)·휴대폰·이메일·금액은 일반 `EL_input`. (키·노드·프로퍼티 = 카탈로그)
 - **★ use_form은 프로퍼티가 수십 개(boolean/swap/text)라 0부터 구성하면 오류가 잦다 → 정본 인스턴스를 clone.** DS 레퍼런스 예시나 이미 올바르게 구성된 화면의 use_form 인스턴스를 `clone()`해 **텍스트(타이틀·placeholder·안내)와 visible만 오버라이드**한다(주요 프로퍼티 목록은 카탈로그). 타이틀 텍스트는 내부 타이틀 노드 직접 오버라이드.
 - **바텀 고정 1차 액션 = `btn54_main_set`**(풀폭). `++Bottom` 프레임 안에서 `UI/Navigation Bar`/`Home Indicator` 위에 얹는다(§C). 변형: Default(활성)·disabled(비활성)·sub·icon+btn54. raw 버튼·`btn60` 직접 사용 금지. (키·라벨 노드 = 카탈로그)
-- **DS에 매칭 컴포넌트가 없으면**: 직접 그리되 ① 비슷한 스타일로 정리하고 ② **활용 가능한 DS 패턴(인풋 상위 타이틀·라벨·헬프텍스트 등)은 공통 적용**하며 ③ 색·타이포는 §K로 토큰 바인딩. 그래도 핵심 컴포넌트가 없으면 §H처럼 사용자에게 소스 확인.
+- **DS에 매칭 컴포넌트가 없으면**: 직접 그리되 ① 비슷한 스타일로 정리하고 ② **활용 가능한 DS 패턴(인풋 상위 타이틀·라벨·헬프텍스트 등)은 공통 적용**하며 ③ 색·타이포는 **그릴 때 즉시** 토큰 바인딩(§K 절차 — 텍스트 스타일+색 변수; 게이트는 안전망, 마감까지 미루지 않음). 그래도 핵심 컴포넌트가 없으면 §H처럼 사용자에게 소스 확인.
 - **교체 시 옛 bespoke는 삭제가 아니라 `visible=false`로 숨김**(추적·복구용, 보호 레이어 원칙). 숨긴 노드는 렌더되지 않아 이중 테두리 없음(§F).
 
 ## M. 공통 픽스 컴포넌트 카탈로그 (반복 패턴 = 정본 1벌)
