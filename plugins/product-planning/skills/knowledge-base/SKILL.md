@@ -28,12 +28,18 @@ description: 레거시 제품 서비스의 정책·도메인 지식을 출처별
    - `id, type, ref, title, version, created, modified, confidence, coverage`
    - `status`: `read | partial | skipped-binary | superseded | missing`, `ingested_at`
    - `type` 열거: `notion | figma | local | web | image | gdrive | slack | ticket`.
-5. **`raw/`** — zip 해제·fetch 원문 캐시. 워크스페이스 `.gitignore` 대상.
+5. **`design-system-catalog.md`** — (`figma-design`) 사내/팀 **디자인시스템 부품 카탈로그**(필드/패턴 → 컴포넌트):
+   - **마크다운**(yaml 아님). `entity-glossary.md`와 같은 **사람이 직접 큐레이션하는 지식** 부류라 표 형태로 둔다(예: "탭은 HDS 3.0 말고 EL_tab_1deapt" 같은 사용자 정본 지정).
+   - 카테고리별 섹션 + 항목 일관 필드: `용도` · `라이브러리 키(componentKey/setKey)` · `clone 소스 노드`(키 없는 조립형) · `컴포넌트 이름`(키 실패 시 검색 폴백용 필수) · `프로퍼티/메모`. **키형/clone형 두 칸 분리**.
+   - **이식성 규약**(타 사용자 환경에서도 안 깨지게): 키 import → 실패 시 이름 검색 → clone형은 노드 실재 확인 후 clone → 못 찾으면 사용자 플래그(bespoke 금지). 파일키는 `sources.json` 경유(하드코딩 금지).
+   - ⚠️ **변수·텍스트스타일 GUID(색 토큰·타이포 토큰)는 여기 넣지 않는다**(아래 staleness 정책 참고).
+6. **`raw/`** — zip 해제·fetch 원문 캐시. 워크스페이스 `.gitignore` 대상.
 
-## staleness 정책 (기술 자료)
+## staleness 정책 (기술 자료 · 디자인시스템 자료)
 - tech-registry·manifest 항목은 `as_of`(확인 기준일)를 보유한다.
 - **서드파티 라이브러리/SDK 문서는 진실로 캐시하지 않는다**(빠르게 변함, CLAUDE.md §7.4). `source-manifest` 에 이름·버전·`as_of` 만 남기고 **사용 시점(특히 SDD 확정 전) Context7 로 재검증**한다.
-- KB는 기술 자료에 대해 "무엇을·어떤 버전으로·언제 확인했는가"의 출처·버전 원장 역할을 한다.
+- **디자인시스템도 같은 논리**: `componentKey`는 안정적인 자산이라 `design-system-catalog.md`에 캐시(tech-registry의 internal-api와 동일 취급). 반면 **변수·텍스트스타일 GUID는 개수가 많고 빠르게 늘어나** 캐시하지 않고 `get_variable_defs`/`search_design_system`으로 이름 기반 즉시 조회한다(서드파티 SDK와 동일하게 "캐시 대상에서 제외").
+- KB는 기술·디자인시스템 자료에 대해 "무엇을·어떤 버전으로·언제 확인했는가"의 출처·버전 원장 역할을 한다.
 
 ## 적재 방법
 - **append + dedupe**: 같은 `id` 가 이미 있으면 덮어쓰지 말고 **출처/내용을 최신 기준으로 갱신**하고 기존 출처는 보존(여러 소스가 한 정책을 뒷받침).

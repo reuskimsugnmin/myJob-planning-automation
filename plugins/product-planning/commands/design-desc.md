@@ -3,11 +3,11 @@ description: Figma 스토리보드 화면에 기획 디스크립션 작성 + 디
 argument-hint: [engagement-slug] [--figma-url url] [--scan|--apply] [--dev-detailed|--standard]
 ---
 
-`design-description` 스킬을 사용해 디자인 화면의 기획 디스크립션을 작성하고 디자인과 동기화하세요. 대상 engagement: $ARGUMENTS. `--figma-url` 로 대상 파일/페이지를, `--scan`(변경 계획만)/`--apply`(적용)로 실행 모드를, **`--dev-detailed`(기본, 개발 착수용 — `[상태]`·`[데이터]`·`[인터랙션]`·`[연동]`·`[엣지/예외]`·`[수용 기준]`, 스킬 §4-D)/`--standard`(간략·의도 중심)** 로 상세 레벨을 지정하세요(미지정이면 전체·dev-detailed).
+`design-description` 스킬을 사용해 디자인 화면의 기획 디스크립션을 작성하고 디자인과 동기화하세요. 대상 engagement: $ARGUMENTS. `--figma-url` 로 대상 파일/페이지를(미지정 시 `.planning/sources.json` `figma.storyboard_target` 폴백), `--scan`(변경 계획만)/`--apply`(적용)로 실행 모드를, **`--dev-detailed`(기본, 개발 착수용 — `[상태]`·`[데이터]`·`[인터랙션]`·`[연동]`·`[엣지/예외]`·`[수용 기준]`, 스킬 §4-D)/`--standard`(간략·의도 중심)** 로 상세 레벨을 지정하세요(미지정이면 전체·dev-detailed).
 
 번호 뱃지↔annotation 1:1 매칭(가장자리 거리·아이콘 인터랙션 후보 포함), 본문 형식(요소명 제목 + 역할 문장 + `[대괄호]` 섹션, Figma 노드명 금지, 인터랙티브 컴포넌트 `[Default 상태]` 명시), 2단계 검증(개수+의미 스크린샷)을 따르고, **디스크립션 내용을 실제 디자인에 동기화**한 뒤 **claim↔노드 대조표**(0건도 표로 증명)로 완료를 증명하세요. 쓰기 원시는 `figma-design` 스킬. 산출물·백업·로그는 `engagements/<slug>/design/`.
 
-디스크립션 작성 후, dev-detailed `[상태]`/`[엣지·예외]`/`[연동] 분기`의 **의미있는 분기(에러·empty·valid·로딩)** 를 관련 SECTION 내 메인 옆에 실현(`storyboard-build` §6, 미세 상태는 컴포넌트 variant)하고, **신규 케이스 포함 전 행**을 3자 매칭(뱃지↔디스크립션↔디자인)으로 확정하세요. 손작업 텍스트·색은 DS 변수 바인딩, 입력/선택/바텀 액션은 DS 컴포넌트(`figma-design` §K/§L)로 맞춥니다. **마감에서 `figma-design` §A 자동 발견 리플로우 루틴을 항상 실행**(SB 높이 리사이즈 + 행 Y cascade, 겹침 0)하세요 — 사용자 요청 없이 자동.
+디스크립션 작성 후, dev-detailed `[상태]`/`[엣지·예외]`/`[연동] 분기`의 **의미있는 분기(에러·empty·valid·로딩)** 를 관련 SECTION 내 메인 옆에 실현(`storyboard-build` §6, 미세 상태는 컴포넌트 variant)하고, **신규 케이스 포함 전 행**을 3자 매칭(뱃지↔디스크립션↔디자인)으로 확정하세요. 손작업 텍스트·색은 DS 변수 바인딩, 입력/선택/바텀 액션은 DS 컴포넌트(`figma-design` §K/§L)로 맞춥니다. **마감에서는 `design-finalize` 스킬의 마감 시퀀스를 항상 실행**(리플로우→hug→겹침→7항목 검수 + 동기화·claim↔노드 대조표, 겹침 0)하세요 — 사용자 요청 없이 자동.
 
 ## 일시정지 규칙
 - **디자인 미실현**: 대상 화면이 아직 PRD대로 만들어지지 않았으면(스토리보드 선행 필요) 경고하고 `/storyboard` 를 먼저 권한다.

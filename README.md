@@ -16,9 +16,9 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 | 5 PRD / (조건부)SDD | 🤖 Claude · 🧑 결정 | ✅ |
 | 6 회의록 종합(Google Doc/Slack → PRD/SDD 반영) | 🤖 보조 · 🧑 확인 | ✅ |
 | 7 의사결정 브리프 | 🤖 보조 · 🧑 결정 | ⬜ 추후 업데이트 예정 |
-| 8~13 Figma 스토리보드 · low/mid-fi 디자인 · 디스크립션 | 🤖 Claude · 🧑 확정 | ⬜ 추후 업데이트 예정 |
+| 8~13 Figma 스토리보드 · low/mid-fi 디자인 · 디스크립션 | 🤖 Claude · 🧑 확정 | ✅ (high-fi 고도화·디자인 확정은 사람) |
 
-> 현재 릴리스(v0.6)는 **단계 1~6**을 제공합니다.
+> 현재 릴리스는 **단계 1~6 + 8~13(디자인)**을 제공합니다. **7(의사결정 브리프)**만 추후 예정입니다.
 
 ## 핵심 개념 (먼저 이해하면 좋은 것)
 
@@ -29,7 +29,7 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 
 ## 도구 구성
 
-아래 플로우차트는 각 도구가 **어떤 워크플로우 작업**을 맡는지, 그리고 **인입 후 레거시/신규 분기**가 어떻게 갈라지는지를 보여줍니다. 둥근 노드는 시작/HITL 분기, 사각 노드는 `커맨드 · 단계`와 그 안에서 쓰는 스킬(괄호)입니다. 점선 박스(7~13단계)는 아직 도구가 만들어지지 않아 *추후 업데이트 예정*입니다.
+아래 플로우차트는 각 도구가 **어떤 워크플로우 작업**을 맡는지, 그리고 **인입 후 레거시/신규 분기**가 어떻게 갈라지는지를 보여줍니다. 둥근 노드는 시작/HITL 분기, 사각 노드는 `커맨드 · 단계`와 그 안에서 쓰는 스킬(괄호)입니다. **8~13 디자인 단계는 PRD 확정 후 명시적 별도 호출**(`/storyboard`·`/design-desc`·`/design-sync`)로 동작합니다(아래 본문 참조). 점선 박스(7단계 의사결정 브리프)만 아직 도구가 없어 *추후 업데이트 예정*입니다.
 
 ```mermaid
 flowchart TD
@@ -192,7 +192,7 @@ PRD 확정 후 **명시적 별도 호출**로 시작합니다(디자인 취향·
 |---|---|
 | `notion.policy_dbs`·`domain_pages`·`ticket` | 1~3 |
 | `figma.legacy_files`·`reference_files`·`explore_pages` | 3(읽기) |
-| `figma.storyboard_template_file`·`design_system_files` | 8~13(디자인 쓰기) |
+| `figma.storyboard_template_file`·`design_system_files`·`storyboard_target`(선택·--figma-url 폴백) | 8~13(디자인 쓰기) |
 | `local.doc_dirs`·`archives`·`exclude` | 3~4 |
 | `web.tech_docs`·`context7_libraries` | 4 |
 | `reference.web`·`images` | 3-alt(신규) |
