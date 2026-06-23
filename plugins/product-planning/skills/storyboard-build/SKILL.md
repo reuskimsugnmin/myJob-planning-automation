@@ -66,7 +66,7 @@ description: PRD/SDD를 Figma 스토리보드·low/mid-fi 디자인으로 실현
 - **갭 분석 결과를 사용자에게 제시하고 확인받은 뒤** 실행(잘못된 대량 생성 방지).
 - 모드 A: 변경분만 in-place 반영(옛 요소 완전 삭제, 뱃지·디스크립션 보존). 모드 B: `figma-design` 의 ++Top 골격 + region↔컴포넌트 매핑 + zero-bespoke 마감으로 **한 패스에 완전한 구조**(Description 스캐폴드 포함)로 산출.
 - "누락 0개"여도 끝이 아님 — **기존 화면도 PRD TO-BE 항목 단위로 대조**해 반영. 5개씩 배치, 15개 초과는 범위 분할.
-- `⛳DECISION`: 전략적 UX 배치(핵심 정보 우선순위·차별화 요소)는 단정하지 말고 옵션·추천만. **이런 결정은 인라인 단정 대신 `decision-checklist` 스키마로 `policy-table.md` 하단 "디자인 의사결정 체크리스트"에 `D-n` 적재**(추천안·임시채택까지 AI, 최종 결정은 사람). 화면 정책의 `의사결정`은 `→ D-n` 포인터로. 제품 전략급(밸류·타겟·서비스정책)은 영향 범위에 `→ PRD D-n` cross-link(PRD.md는 수정하지 않음).
+- `⛳DECISION`: 전략적 UX 배치(핵심 정보 우선순위·차별화 요소)는 단정하지 말고 옵션·추천만. **이런 결정은 인라인 단정 대신 `decision-checklist` 스키마로 `policy-table.md` 하단 "디자인 의사결정 체크리스트"에 `D-n` 적재**(추천안·임시채택까지 AI, 최종 결정은 사람). 화면 정책의 `의사결정`은 `→ D-n` 포인터로. **결정이 서비스정책·기획요건에 영향을 주면 `PRD/SDD C1 D-n`에 등록·본문 갱신(`prd-sdd-editing` 준수) + policy-table엔 `→ PRD D-n` 링크**; 순수 표현 결정은 PRD를 수정하지 않는다(`decision-checklist` 영향 기준 분기).
 
 ### 4. 비주얼 게이트 (필수 HITL)
 - 생성·변경한 화면을 `get_screenshot`(maxDimension≥800)으로 캡처해 **실제 보이는 콘텐츠**(라벨·이미지·값)가 PRD TO-BE와 맞는지 확인한다. 노드 이름·visible·디스크립션이 아니라 **렌더로 판정**.

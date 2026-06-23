@@ -16,7 +16,7 @@ description: Figma 스토리보드 화면에 한국어 기획 디스크립션을
 디스크립션이 얕아지는 1차 원인은 **화면만 보고 일반적 문장을 쓰는 것**이다. 작성 전 반드시:
 - **`PRD.md` + `engagements/<slug>/design/policy-table.md`**(있으면 `SDD.md`)를 **로드**한다. 없으면 멈추고 사용자에게 확인(근거 없는 디스크립션 금지).
 - 각 요소의 대괄호 필드(`[Validation]`·`[데이터]`·`[상태]`·`[인터랙션]`·`[수용 기준]` 등)는 **그 요소의 FR·유저스토리·수용기준·policy-table 행에서 값을 옮겨** 채우고 `(FR-n)/(US-n)/(P-XX)` 로 출처 인용한다.
-- PRD/policy-table에 그 값이 **없으면 지어내지 말고 `[미확정 D-n]`/`⛳DECISION`** 으로 표기(공백을 드러내 사용자/SDD에 위임). 그 `D-n`은 **`policy-table.md` 디자인 의사결정 체크리스트(`decision-checklist` 스키마)에 등록**하고 제품 전략급이면 `→ PRD D-n`으로 cross-link(고아 마커 금지). "화면을 보니 대충 이럴 것"이라는 추측 서술 금지.
+- PRD/policy-table에 그 값이 **없으면 지어내지 말고 `[미확정 D-n]`/`⛳DECISION`** 으로 표기(공백을 드러내 사용자/SDD에 위임). 그 `D-n`은 **`policy-table.md` 디자인 의사결정 체크리스트(`decision-checklist` 스키마)에 등록**하고, **서비스정책·기획요건에 영향을 주면 `PRD/SDD C1 D-n`에 등록·본문 갱신(`prd-sdd-editing` 준수) + policy-table엔 `→ PRD D-n` 링크**(고아 마커 금지·`decision-checklist` 영향 기준 분기). "화면을 보니 대충 이럴 것"이라는 추측 서술 금지.
 
 ## 0. 핵심 원칙
 **커버리지 — 모든 화면.** 대상 페이지의 **모든 SECTION 화면**에 Descriptions 프레임·뱃지가 있어야 완료다. 일부 화면만 작성하고 끝내면 **미완료**이며, 미처리 화면 목록을 사용자에게 보고한다(특정 화면을 의도적으로 제외하려면 사용자 확인). `.md` 파일만 쓰고 캔버스에 뱃지/annotation을 안 만든 화면은 미처리로 본다.
