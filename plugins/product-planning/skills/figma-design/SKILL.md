@@ -116,6 +116,6 @@ swap/삽입 시 ① swap 후 색·모양 이상(per-vector fill 잔재 → `rese
 - **결과 화면의 상세 데이터는 M-7 `ui/detail`**로(bespoke 요약 카드 금지). §C-결과 ③과 동일.
 
 ## 원칙
-- 출처 없는 단정 금지. 전략적 UX 배치는 `⛳DECISION` 으로 표시하고 옵션·추천만 제시(사람 결정).
+- 출처 없는 단정 금지. 전략적 UX 배치는 `⛳DECISION` 으로 표시하고 옵션·추천만 제시(사람 결정). 이 결정은 `decision-checklist` 스키마로 `policy-table.md` 디자인 의사결정 체크리스트에 `D-n` 적재(`storyboard-build` 참조).
 - 모든 산출물(백업·로그)은 **CWD 워크스페이스** `engagements/<slug>/design/` 에. 플러그인 디렉토리에 쓰지 않는다.
 - 디자인을 바꾸면 해당 디스크립션도 그에 맞춰 동기화한다(따로 놀지 않게) → `design-description`.
