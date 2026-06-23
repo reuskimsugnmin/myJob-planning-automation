@@ -4,7 +4,7 @@ PM/PD 기획 워크플로우 자동화 플러그인. **산출물은 현재 작�
 
 ## 워크플로우 (도구 ↔ 작업 매핑)
 
-각 도구가 어떤 워크플로우 작업을 맡는지와 **인입 후 레거시/신규 분기**입니다. 사각 노드는 `커맨드 · 단계 (사용 스킬)`, 점선 박스(7~13단계)는 도구 미구현 *추후 업데이트 예정*.
+각 도구가 어떤 워크플로우 작업을 맡는지와 **인입 후 레거시/신규 분기**입니다. 사각 노드는 `커맨드 · 단계 (사용 스킬)`. 1~6단계(기획) → 7단계(의사결정 확정) → 8~13단계(디자인: 스토리보드·디스크립션·동기화)까지 모두 구현돼 있으며, 13단계 high-fi 취향 확정만 사람 몫입니다.
 
 ```mermaid
 flowchart TD
@@ -29,18 +29,11 @@ flowchart TD
 
     Meeting["/meeting-synthesis · 6단계<br/>회의록(Google Doc)/Slack → PRD·SDD 반영<br/>(meeting-synthesis → gdrive·slack-explore · decision-checklist)"]
 
-    Meeting -.-> Future
-    subgraph Future ["7~13단계 · 추후 업데이트 예정 ⬜ (도구 미구현)"]
-        direction TB
-        S7["7 상위 결정"]
-        S8["8 스토리보드 템플릿"]
-        S9["9 PRD→스토리보드"]
-        S10["10 레거시/레퍼런스 학습"]
-        S11["11 low/mid-fi 디자인"]
-        S12["12 상세 디스크립션"]
-        S13["13 high-fi 고도화"]
-        S7 --> S8 --> S9 --> S10 --> S11 --> S12 --> S13
-    end
+    Meeting --> Decide{"7단계 · 의사결정 확정<br/>decision-checklist D-n 최종화 (회의·사업부 HITL)<br/>→ prd-sdd-editing 으로 PRD/SDD 반영"}
+    Decide --> Story["/storyboard · 8~11단계<br/>플로우·화면 인벤토리→policy-table→Figma 화면 생성·비주얼 게이트<br/>(storyboard-build → figma-design · figma-explore)"]
+    Story --> Desc["/design-desc · 12단계<br/>화면 기획 디스크립션 작성+디자인 동기화(dev-detailed)<br/>(design-description → figma-design)"]
+    Desc --> Sync["/design-sync · 11/13 검증<br/>리플로우+동기화 검증+7항목 마감 게이트<br/>(design-description §6·7 · figma-design §A · storyboard-build §9)"]
+    Sync -.->|13 high-fi 고도화·취향 확정 = 사람 몫| Done([디자이너 마감])
 ```
 
 ## 커맨드
@@ -54,11 +47,15 @@ flowchart TD
 | `/prd` | 5 | 빅테크 PM 방법론 PRD(원페이저+상세+의사결정 체크리스트) |
 | `/sdd` | 5 | (게이트 통과 시) SDD 작성 |
 | `/meeting-synthesis` | 6 | 회의록(Google Doc)/Slack 스레드 → PRD/SDD 반영 |
+| `/storyboard` | 8~11 | 플로우·화면 인벤토리 → policy-table → Figma 화면 생성·TO-BE 반영·비주얼 게이트 |
+| `/design-desc` | 12 | 화면 기획 디스크립션 작성 + 디자인 동기화(개발 착수용 dev-detailed) |
+| `/design-sync` | 11/13 | 리플로우 + 디스크립션↔디자인 동기화 검증 + 7항목 마감 게이트 |
 
 ## 스킬
 - **워크플로우(오케스트레이션)**: `planning-intake` · `domain-study` · `reference-research` · `tech-research` · `prd-author` · `sdd-author` · `meeting-synthesis`
+- **디자인 실현(8~13)**: `storyboard-build`(스토리보드 오케스트레이션) · `design-description`(디스크립션+동기화) · `figma-design`(Figma 쓰기 단일 방법론). 디자인 단계의 Figma "읽기"는 아래 공용 `figma-explore`·`image-explore` 를 그대로 재사용.
 - **소스별 읽기(7종)**: `notion-explore` · `figma-explore` · `local-source-ingest` · `web-explore` · `image-explore` · `slack-explore` · `gdrive-explore`
-- **공용**: `knowledge-base`(파일 KB 쓰기) · `decision-checklist`(기획 공백→추천안→최종결정) · `prd-sdd-editing`(편집 불변식)
+- **공용**: `knowledge-base`(파일 KB 쓰기) · `decision-checklist`(기획·디자인 공백→추천안→최종결정, 같은 스키마 공유·영향 기준 분기) · `prd-sdd-editing`(편집 불변식·디자인 단계 편집 포함)
 
 (커맨드 없이도 대화 중 관련 작업이면 자동 트리거됩니다.)
 
@@ -76,5 +73,6 @@ engagements/<YYYY-MM>-<slug>/
   00-project-brief.md
   research/{domain-study|reference-research,tech-research}.md  research/meetings/<date>.md
   PRD.md  SDD.md
+  design/{flow.md, policy-table.md, logs/}   # 디자인 단계 산출물: 플로우·화면정책(PRD 투영)·빌드/싱크 로그 (디스크립션은 Figma 내 주석)
 .planning/knowledge-base/   # 팀 공용 파일 KB: policy-registry·entity-glossary·tech-registry·source-manifest (raw/는 gitignore)
 ```
