@@ -3,7 +3,7 @@ description: 디스크립션↔디자인 동기화 상태를 검증하고 불일
 argument-hint: [engagement-slug] [--figma-url url]
 ---
 
-`design-finalize` 스킬의 **마감 시퀀스**를 사용해 전체 페이지를 정렬·검수·검증하세요. 대상 engagement: $ARGUMENTS. `--figma-url` 로 대상 파일/페이지를 지정하세요. 이 커맨드는 **마감 시퀀스의 수동 재트리거 진입점**입니다 — Figma에서 손으로 디스크립션/디자인을 편집한 뒤에도 `/design-sync` 한 번이면 정렬·검수가 맞춰집니다.
+`design-finalize` 스킬의 **마감 시퀀스**를 사용해 전체 페이지를 정렬·검수·검증하세요. 대상 engagement: $ARGUMENTS. `--figma-url` 로 대상 파일/페이지를 지정하세요(미지정 시 `.planning/sources.json` `figma.storyboard_target` 폴백). 이 커맨드는 **마감 시퀀스의 수동 재트리거 진입점**입니다 — Figma에서 손으로 디스크립션/디자인을 편집한 뒤에도 `/design-sync` 한 번이면 정렬·검수가 맞춰집니다.
 
 **1) 리플로우** (`design-finalize` 1단계 = `figma-design` §A): Description 높이에 맞춰 SB 카드 height 리사이즈 + 전 행 Y cascade, 겹침 0. 리플로우 매칭 카운트(행수·미매칭)를 dry-run으로 보고하세요.
 
