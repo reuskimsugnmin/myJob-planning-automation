@@ -91,12 +91,7 @@ description: PRD/SDD를 Figma 스토리보드·low/mid-fi 디자인으로 실현
 ### 8. 리플로우 자동 실행 (마감 필수 게이트)
 화면·케이스 추가나 디스크립션 변경으로 행 높이가 바뀌었으므로, 작업을 끝내기 전 **`figma-design` §A 자동 발견 리플로우 루틴을 항상 실행**한다(SB 카드 height 리사이즈 + 전 행 Y cascade, 겹침 0). 사용자 요청 없이 자동. 매칭 카운트(행수·미매칭)를 보고에 포함. (손편집 후 단독 정렬은 `/design-sync`.)
 - **★ Description은 `primaryAxisSizingMode='AUTO'`(콘텐츠 hug) 필수.** FIXED 높이면 주석 텍스트가 늘 때 **조용히 오버플로**해 아래 행을 침범하고, `node.height`는 그대로라 검사를 속인다(실패 사례 e05: frame 697인데 콘텐츠 1204 → e-loading 침범). 마감 전 전 Description을 AUTO로 강제.
-- **★ 완료 조건 = bbox 교차 0을 스크립트로 확인 — 단, `node.height`/`y+height` 금지.** FIXED 프레임은 오버플로해도 height가 안 변하므로 **`absoluteBoundingBox` + 자식 콘텐츠 최대 extent**로 실제 bottom을 계산해야 한다(자식 `.x/.y`는 부모 상대좌표 → 절대변환은 `child.absoluteBoundingBox` 사용). 격리 스크린샷도 겹침을 숨기니 좌표로만 검증. 점검:
-```js
-function realBottom(n){const b=n.absoluteBoundingBox;let m=b.y+b.height;if(n.children)for(const c of n.children){const cb=c.absoluteBoundingBox;if(cb&&cb.y+cb.height>m)m=cb.y+cb.height;}return m;}
-const E=page.children.filter(c=>c.type==='SECTION'||(c.type==='FRAME'&&c.name==='Description')).map(c=>{const b=c.absoluteBoundingBox;return {n:c.name,x:b.x,y:b.y,r:b.x+b.width,bot:realBottom(c)};});
-let hit=0; for(let i=0;i<E.length;i++)for(let j=i+1;j<E.length;j++){const a=E[i],z=E[j];if(Math.min(a.r,z.r)-Math.max(a.x,z.x)>5 && Math.min(a.bot,z.bot)-Math.max(a.y,z.y)>5)hit++;} // hit===0 이어야 마감
-```
+- **★ 완료 조건 = bbox 교차 0을 스크립트로 확인 — 단, `node.height`/`y+height` 금지.** FIXED 프레임은 오버플로해도 height가 안 변하므로 **`absoluteBoundingBox` + 자식 콘텐츠 최대 extent**로 실제 bottom을 계산해야 한다(자식 `.x/.y`는 부모 상대좌표 → 절대변환은 `child.absoluteBoundingBox` 사용). 격리 스크린샷도 겹침을 숨기니 좌표로만 검증. 점검 스크립트: `scripts/reflow-audit.js`(`hit===0` 이어야 마감).
 - **★ 더블하이트 clone 주의**: 타 행보다 큰 섹션(여러 폰행을 가진 2단 레이아웃)을 clone해 표준 슬롯에 넣으면 아래 행을 침범한다(실패 사례: e04(1820)를 e05 슬롯에 clone → e-loading 640px 침범). 폰을 **단일 행으로 재배치**해 슬롯 높이에 맞추거나, 아래 전 행을 cascade한다.
 
 ### 9. 자동 마감 검수 게이트 (7항목 · 마감 필수 자동 실행)
@@ -116,40 +111,13 @@ let hit=0; for(let i=0;i<E.length;i++)for(let j=i+1;j<E.length;j++){const a=E[i]
 | 8 | SB 화면번호/타이틀 == 섹션명 | `figma-design` §A 리플로우 4단계 | 리플로우로 자동동기화 |
 | 9 | 컴포넌트 hug 무결성(붕괴·흰여백 0) | `figma-design` §F-3 | 자동 hug 수정 |
 
-- **#1 DS 커버리지** — authored 비-콘텐츠 UI에 bespoke 잔재 0:
-```js
-const bad=[]; for(const sec of page.children.filter(c=>c.type==='SECTION'))
- for(const n of sec.findAll(x=>['FRAME','RECTANGLE','ELLIPSE','VECTOR'].includes(x.type))){ if(insideInstance(n))continue;
-   if(/chip|tab|btn|button|toggle|radio|checkbox|select|input|badge|card|pill|switch/i.test(n.name)) bad.push(sec.name+'/'+n.name); }
-// bad=[] 이어야. 남으면 §M/§L 정본 컴포넌트로 교체(인풋=use_form·탭/칩=M-9/10·버튼=btn54…)
-```
-- **#7 컴포넌트 무결성** — authored 최상위 INSTANCE 전수(detach 0·override 유지):
-```js
-const broken=[]; for(const sec of page.children.filter(c=>c.type==='SECTION'))
- for(const inst of sec.findAll(x=>x.type==='INSTANCE')){ if(insideInstance(inst))continue;
-   const mc=await inst.getMainComponentAsync(); if(!mc){broken.push(inst.id+' DETACHED');continue;}
-   if(inst.children&&inst.children.length===0)broken.push(inst.id+' EMPTY'); }
-// detach/empty 0. + get_screenshot로 swap 잔재(이중테두리·팬텀여백·색 이상=§F)·텍스트 오버라이드 유실 육안 확인
-```
-- **#2 액션 배지 완전성(★ 카운트 아님 — 요소별 배지 실재)** — **모든 인터랙티브 요소**가 *각자* 노출 배지를 가져야 한다: 버튼·입력·탭(탭바)·칩(칩행)·카드·링크·토글 **+ 오버레이 서브액션**(시트 옵션 행 각각·팝업 버튼 각각). **디스크립션 inline 서술로 대체 금지** — 시트 옵션/팝업 버튼도 `label-group` 배지(부모 N + 서브 Na/Nb)를 *디자인 위에* 둔다(실패: e02 시트 옵션·팝업 버튼을 배지 없이 inline로 때움). 각 액션 요소 bbox edge 최근접 배지 ≤ 임계거리인지 스크립트로 대조 → 미스 0. 양식은 `design-description` badge-matching.
-```js
-// 인터랙티브 요소 ↔ 최근접 배지 대조(미스 리포트)
-const acts=sec.findAll(n=>n.visible&&/btn|button|EL_input|use_form|tab$|chip|EL_tab|product-card|toggle|radio|checkbox|EL_Select|Close|닫기|확인|취소/i.test(n.name)&&!insideInstance(n.parent));
-const badges=sec.children.filter(c=>c.name==='label-group').map(b=>b.absoluteBoundingBox);
-const miss=acts.filter(a=>{const ab=a.absoluteBoundingBox;return !badges.some(b=>Math.hypot((b.x+b.width/2)-(ab.x), (b.y+b.height/2)-(ab.y))<120);});
-// miss=[] 이어야. 남으면 해당 요소 위에 배지 추가
-```
+- **#1 DS 커버리지** — authored 비-콘텐츠 UI에 bespoke 잔재 0(`bad=[]` 이어야. 남으면 §M/§L 정본 컴포넌트로 교체 — 인풋=use_form·탭/칩=M-9/10·버튼=btn54…). 점검 스크립트: `scripts/closeout-audit.js` #1.
+- **#7 컴포넌트 무결성** — authored 최상위 INSTANCE 전수(detach 0·override 유지. detach/empty 0 + `get_screenshot`로 swap 잔재(이중테두리·팬텀여백·색 이상=§F)·텍스트 오버라이드 유실 육안 확인). 점검 스크립트: `scripts/closeout-audit.js` #7.
+- **#2 액션 배지 완전성(★ 카운트 아님 — 요소별 배지 실재)** — **모든 인터랙티브 요소**가 *각자* 노출 배지를 가져야 한다: 버튼·입력·탭(탭바)·칩(칩행)·카드·링크·토글 **+ 오버레이 서브액션**(시트 옵션 행 각각·팝업 버튼 각각). **디스크립션 inline 서술로 대체 금지** — 시트 옵션/팝업 버튼도 `label-group` 배지(부모 N + 서브 Na/Nb)를 *디자인 위에* 둔다(실패: e02 시트 옵션·팝업 버튼을 배지 없이 inline로 때움). 각 액션 요소 bbox edge 최근접 배지 ≤ 임계거리인지 스크립트로 대조 → 미스 0. 양식은 `design-description` badge-matching. 점검 스크립트: `scripts/closeout-audit.js` #2(`miss=[]` 이어야).
 - **#5 디스크립션→디자인 역검증** — 각 화면 Description 본문에서 `[상태]/[엣지·예외]/[오버레이]/[에러]/[노출 조건]` 분기를 추출해, **분기마다 대응 디자인**(상태 프레임·오버레이 폰·variant)이 존재하는지 대조. 없으면 리포트 → §6로 화면화(HITL).
 - **#6 요소→목적지 화면 완전성** — 각 인터랙티브 요소가 *여는* 화면이 §0 인벤토리/`flow.md`에 존재하는지 대조(예: e01 검색 인풋→검색/자동완성/결과 화면, 카드 탭→상세). 누락이면 인벤토리 보완 + §6/§0 루프(HITL). #3·#4는 `design-description`이 owner(여기선 그 결과를 PASS 확인만).
 
-- **#8 SB 라벨 == 섹션명** — 각 SB의 `[화면 ID]`·`화면 / 기능명`이 매칭 섹션명에서 파생한 값과 같은지(`[`+섹션명 접두+`]` / 나머지). 불일치는 `figma-design` §A 리플로우 4단계가 자동 동기화하므로 **리플로우 재실행으로 교정**(별도 수정 불필요). 드리프트 예: 섹션 `e05 본인인증`인데 SB `[P-04]`.
-```js
-for(const sb of page.children.filter(c=>c.type==='INSTANCE'&&c.name==='SB_Templates')){
-  const sec=page.children.find(s=>s.type==='SECTION'&&Math.abs(s.absoluteBoundingBox.y-(sb.absoluteBoundingBox.y+142))<60); if(!sec)continue;
-  const sp=sec.name.indexOf(' '), id=sp>0?sec.name.slice(0,sp):sec.name, title=sp>0?sec.name.slice(sp+1):sec.name;
-  const idT=sb.findOne(n=>n.type==='TEXT'&&n.name==='[화면 ID]'), tiT=sb.findOne(n=>n.type==='TEXT'&&n.name==='화면 / 기능명');
-  if(idT&&idT.characters!=='['+id+']') /* mismatch → 리플로우 */; }
-```
+- **#8 SB 라벨 == 섹션명** — 각 SB의 `[화면 ID]`·`화면 / 기능명`이 매칭 섹션명에서 파생한 값과 같은지(`[`+섹션명 접두+`]` / 나머지). 불일치는 `figma-design` §A 리플로우 4단계가 자동 동기화하므로 **리플로우 재실행으로 교정**(별도 수정 불필요). 드리프트 예: 섹션 `e05 본인인증`인데 SB `[P-04]`. 점검 스크립트: `scripts/closeout-audit.js` #8.
 
 - **#9 컴포넌트 hug 무결성** — 삽입/clone한 컴포넌트가 **높이 1px 붕괴(숨겨짐)** 또는 **FIXED 프레임 흰 여백**(visible 콘텐츠보다 훨씬 큼)인지 전수 검사·자동 hug 수정(`figma-design` §F-3 스니펫). **화면 흰 여백이 많으면 이 결함을 의심**한다. 마감 전 자동 실행해 붕괴/흰여백 0.
 

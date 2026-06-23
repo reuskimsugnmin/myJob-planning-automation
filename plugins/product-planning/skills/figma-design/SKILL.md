@@ -103,15 +103,7 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
 ## F. 컴포넌트 swap·삽입 결함 3종 (반드시 점검)
 1. **swap 후 색·모양 이상** = 이전 컴포넌트의 per-vector fill 오버라이드 잔재(어두운 variant→밝은 variant 인데 일부 벡터가 어두운 색). → `inst.resetOverrides()` 후 `get_screenshot` 확인.
 2. **auto-layout 리스트에 항목 추가 시 FIXED 높이 수동 확장 금지** = 콘텐츠 auto-grow + 높이 추가 → 팬텀 여백(`primaryAxisAlignItems=MAX` 면 상단 빈공간). → 컨테이너 `primaryAxisSizingMode='AUTO'`(HUG).
-3. **★ 삽입/clone 후 높이 붕괴·흰 여백 = hug 미처리(가장 잦은 삽입 에러).** 컴포넌트를 auto-layout에 append하면 종종 ① `layoutGrow=1`/`lsV='FILL'`로 **높이가 1px로 붕괴**(숨겨져 보임), ② FIXED 프레임이 visible 콘텐츠보다 훨씬 커서 **흰 여백**(완료헤드처럼 hidden 자식 자리 남음)이 생긴다. **휴리스틱: 화면에 흰 여백이 많거나 컴포넌트가 안 보이면 hug 결함을 의심**한다. → **삽입 후 hug 검증·자동수정**: auto-layout 자식이면 `layoutGrow=0` + `layoutSizingVertical='HUG'`(프레임이면 `primaryAxisSizingMode='AUTO'`). 이 검증은 `storyboard-build` §9 #9로 **마감 시 자동 audit**된다.
-```js
-// 삽입/clone 직후 또는 마감: 붕괴(<6px)·흰여백(height>visible콘텐츠+32) 자동수정.
-// ★ FRAME뿐 아니라 INSTANCE도 — 컴포넌트 인스턴스가 콘텐츠보다 훨씬 큰 흰여백이 잦다(total_set 177→50 사례).
-const content=(n)=>{let b=0;for(const c of (n.children||[])){if(c.visible===false)continue;const cb=(c.y||0)+(c.height||0);if(cb>b)b=cb;}return b;};
-const inAL = n.parent && (n.parent.layoutMode==='VERTICAL'||n.parent.layoutMode==='HORIZONTAL');
-if(inAL && n.height<6 && n.children?.some(c=>c.visible!==false&&c.height>2)){ n.layoutGrow=0; try{n.layoutSizingVertical='HUG'}catch(e){if(n.type==='FRAME')n.primaryAxisSizingMode='AUTO'} }   // 붕괴
-else if(inAL && content(n)>0 && n.height>content(n)+32){ n.layoutGrow=0; try{n.layoutSizingVertical='HUG'}catch(e){if(n.type==='FRAME'&&n.layoutMode)n.primaryAxisSizingMode='AUTO'} }      // 흰여백(FRAME·INSTANCE 공통)
-```
+3. **★ 삽입/clone 후 높이 붕괴·흰 여백 = hug 미처리(가장 잦은 삽입 에러).** 컴포넌트를 auto-layout에 append하면 종종 ① `layoutGrow=1`/`lsV='FILL'`로 **높이가 1px로 붕괴**(숨겨져 보임), ② FIXED 프레임이 visible 콘텐츠보다 훨씬 커서 **흰 여백**(완료헤드처럼 hidden 자식 자리 남음)이 생긴다. **휴리스틱: 화면에 흰 여백이 많거나 컴포넌트가 안 보이면 hug 결함을 의심**한다. → **삽입 후 hug 검증·자동수정**: auto-layout 자식이면 `layoutGrow=0` + `layoutSizingVertical='HUG'`(프레임이면 `primaryAxisSizingMode='AUTO'`). 이 검증은 `storyboard-build` §9 #9로 **마감 시 자동 audit**된다. 점검 스크립트: `scripts/hug-fix.js`(대상 노드 `n`에 바인딩해 실행).
 - 같은 계층 구조의 컴포넌트만 `swapComponent` 가능. 구조가 다르면 수동 교체 후 "수동 확인 필요" 명시.
 - **교체 시 옛 요소는 완전 삭제.** 새 인스턴스를 옛 그룹 위에 얹지 말 것(잔여 stroke/fill/radius/padding → 이중 테두리·겹침).
 - **★ swap/교체 대상은 하드코딩 노드 ID 금지 — 내용·역할로 탐지.** 타일·카드·반복 요소의 자식 ID가 **균일(타일마다 +N)하다고 가정하면 엉뚱한 노드를 건드린다**(실패: 국기 교체 시 row2 이모지 ID를 +4 균일로 가정 → 실제론 국가명 ID라 **국가명을 이모지로 착각해 숨김**). 각 컨테이너 안에서 **역할로 찾는다**: 이모지=`/[\u{1F1E6}-\u{1F1FF}]|\p{Extended_Pictographic}/u`(**국기 이모지는 Regional Indicator라 `Extended_Pictographic`만으로는 못 잡음**), 카운트=키워드(`개`/`상품`), 이름=나머지 텍스트. 교체 후 **이모지 노출 0 · 이름 노출 유지**를 반복 컨테이너 전수 검증(반복 요소는 한 곳만 보지 말 것).
@@ -144,42 +136,22 @@ else if(inAL && content(n)>0 && n.height>content(n)+32){ n.layoutGrow=0; try{n.l
 손으로 만든 노드도 **raw hex·raw 폰트 금지** — 색·타이포는 연결 라이브러리(예 HPDS_1.0) 변수에 바인딩한다. DS 컴포넌트 인스턴스는 자체 바인딩을 갖고 오므로 대상이 아니고, **내가 작성한 TEXT/도형/프레임**이 갭이다(가장 잦은 토큰 미적용 원인).
 - **색**: `node.fills` 의 SOLID paint를 `setBoundVariableForPaint(paint, 'color', variable)` 로 색 변수에 바인딩(텍스트 컬러·배경·라인 모두). 변수는 `search_design_system`(includeVariables) / `get_variable_defs` 로 수집(예 `Grayscale/gray900`·`Primary/primary500`·`Grayscale/gray600_text_fields`).
 - **타이포(색만으로는 불충분 — 텍스트 스타일 토큰 필수)**: 손작업 TEXT는 색 변수만이 아니라 **HPDS 텍스트 스타일**을 적용한다 — `node.setTextStyleIdAsync(style.id)`(스타일은 `figma.getLocalTextStylesAsync()`/원격 라이브러리에서 이름으로 조회). 폰트 스타일이 토큰화되지 않으면 색만 라이브러리고 타이포는 raw로 남는다(사용자가 별도 적용해야 했던 실패 사례). 공통 스타일 예: 제목 `✏️ Title/H1_B_24`·`H3_B_20`, 본문 `✏️ Body/P2_R_16`·`P3_B_14`(라벨)·`P3_R_14`, 캡션 `✏️ Caption/C1_R_12`. 스타일 적용 전 해당 폰트 로드(§E). DS에 토큰이 없을 때만 raw, 그 경우 §H 플래그.
-- **검증(★ 마감 필수 게이트 — 색만 바인딩하는 부분적용 금지)**: 작업 끝내기 전 authored 노드를 **스크립트로 전수 검사**한다. ① 배경/라인 도형: `fills[0].boundVariables.color` 有 ② 각 TEXT: `textStyleId` 有(빈 문자열/`figma.mixed` 아님). **fillBound=false 또는 styleId 없음이 1건이라도 있으면 미완료.** annotation 배지(`text-area`)·이모지/아이콘 글리프(국기·`›`·`▾` 등 텍스트스타일 부적합)는 제외. 텍스트스타일은 **타이포만 바꾸고 색(fills)은 불변**이므로 안전 — 적용 전 그 스타일의 폰트를 `loadFontAsync`(원격 스타일은 `setTextStyleIdAsync`가 내부 로드하나 실패 시 선로드 필요). 점검 스니펫:
-```js
-// authored(인스턴스 외부) 노드 raw 검사
-let badFill=0,badText=0;
-for(const n of sec.findAll(x=>x.type==='FRAME'||x.type==='RECTANGLE')){ if(insideInstance(n)||n.name==='text-area')continue; const f=n.fills&&n.fills[0]; if(f&&f.type==='SOLID'&&!(f.boundVariables&&f.boundVariables.color))badFill++; }
-for(const t of sec.findAllWithCriteria({types:['TEXT']})){ if(insideInstance(t)||!t.textStyleId)badText++; }
-// badFill==0 && badText==0 이어야 마감
-```
+- **검증(★ 마감 필수 게이트 — 색만 바인딩하는 부분적용 금지)**: 작업 끝내기 전 authored 노드를 **스크립트로 전수 검사**한다. ① 배경/라인 도형: `fills[0].boundVariables.color` 有 ② 각 TEXT: `textStyleId` 有(빈 문자열/`figma.mixed` 아님). **fillBound=false 또는 styleId 없음이 1건이라도 있으면 미완료.** annotation 배지(`text-area`)·이모지/아이콘 글리프(국기·`›`·`▾` 등 텍스트스타일 부적합)는 제외. 텍스트스타일은 **타이포만 바꾸고 색(fills)은 불변**이므로 안전 — 적용 전 그 스타일의 폰트를 `loadFontAsync`(원격 스타일은 `setTextStyleIdAsync`가 내부 로드하나 실패 시 선로드 필요). 점검 스크립트: `scripts/token-audit.js`(대상 SECTION `sec`에 바인딩해 실행).
+- **변수/텍스트스타일 GUID는 캐시하지 않는다.** §M 컴포넌트처럼 카탈로그(`design-system-catalog.md`)에 적재하지 말고 필요할 때마다 `get_variable_defs`/`search_design_system`으로 이름 기반 즉시 조회한다(개수가 많고 이름 기반 조회가 더 안전 — 컴포넌트 key는 안정적이라 카탈로그에 캐시하는 §M과 다른 취급).
 
 ## L. 컴포넌트 매칭 (필드 → DS 컴포넌트, bespoke 금지)
 같은 의미의 UI는 **DS의 전용 컴포넌트**로 짓는다 — 입력/선택/라벨/바텀 액션을 직접 도형·텍스트로 조립하지 않는다(§D 우선순위의 구체화). 반복 오버레이·안내·상세블록은 §M 픽스 컴포넌트 카탈로그의 정본 clone.
-- **입력·선택·필드 라벨 = `use_form` 합성 컴포넌트**(HPDS key `f1df80617cffbbb72a113fc1f6e4e4b8b002e226`). `use_form`은 **상위 타이틀(라벨) + 입력 필드 + 안내/에러 메시지**를 한 묶음으로 제공하는 공통 패턴이다. 필드 위 라벨도 raw TEXT가 아니라 use_form의 타이틀로(인풋 상위 타이틀 공통 적용). 안쪽 입력은 `EL_input/*` variant(default/typing/end/disabled/error). **select(통신사/국가 등)** 는 정본 select use_form `448:5318`(안쪽 `EL_Select_Flag`)을 clone — **셰브론(▼)은 내장**이라 bespoke `▾` 텍스트 금지. 국가가 아니면 `-아이콘#34811:13=false`(앞 국기 off) + 채워진 값의 `flag_ellipse` 노드 `visible=false`. 텍스트형(이름)·휴대폰·이메일·금액은 일반 `EL_input`.
-- **★ use_form은 프로퍼티가 수십 개(boolean/swap/text)라 0부터 구성하면 오류가 잦다 → 정본 인스턴스를 clone.** DS 레퍼런스 예시(`app_loan_012` 등)나 이미 올바르게 구성된 화면의 use_form 인스턴스를 `clone()`해 **텍스트(타이틀·placeholder·안내)와 visible만 오버라이드**한다. 주요 프로퍼티: `타이틀#…`(라벨 표시) · `Show EL_input/Default#…`(입력 표시) · `essential#…`(필수 닷) · `error_message#…`/`Information_message#…`(메시지 표시) · `sub_title#…`(서브 라벨 텍스트). 타이틀 텍스트는 내부 `Title Text` 노드 직접 오버라이드.
-- **바텀 고정 1차 액션 = `btn54_main_set`**(key `8ed6cf4ff1be3524b921d89b0090389d9d5f9969`, 풀폭). `++Bottom` 프레임 안에서 `UI/Navigation Bar`/`Home Indicator` 위에 얹는다(§C). 변형 `Property 1`: `Default`(활성)·`disabled`(비활성)·`sub`·`icon+btn54`. 라벨은 `Text#35060:3`. raw 버튼·`btn60` 직접 사용 금지.
+- **구체 키·노드·프로퍼티는 `design-system-catalog.md`(부품 카탈로그) 한 곳**에 있다(`knowledge-base` 스킬, 워크스페이스 우선 → 플러그인 시드). 적용은 카탈로그의 **방어적 해석 순서**를 따른다(이식성): ① `라이브러리 키` import → ② 실패(라이브러리 미구독/키 변경) 시 `search_design_system`로 **컴포넌트 이름** 재검색 → ③ clone형은 현재 파일에 노드 실재 확인 후 clone(없으면 시도 안 함) → ④ 못 찾으면 **bespoke 금지·사용자 플래그**. 빌드 전 `sources.json` `figma.design_system_files` 구독 여부 1회 확인.
+- **입력·선택·필드 라벨 = `use_form` 합성 컴포넌트.** `use_form`은 **상위 타이틀(라벨) + 입력 필드 + 안내/에러 메시지**를 한 묶음으로 제공하는 공통 패턴이다. 필드 위 라벨도 raw TEXT가 아니라 use_form의 타이틀로(인풋 상위 타이틀 공통 적용). 안쪽 입력은 `EL_input` variant(default/typing/end/disabled/error). **select(통신사/국가 등)** 는 정본 select use_form(`EL_Select_Flag`)을 clone — **셰브론(▼)은 내장**이라 bespoke `▾` 텍스트 금지. 국가가 아니면 앞 국기 아이콘·`flag_ellipse`를 `visible=false`. 텍스트형(이름)·휴대폰·이메일·금액은 일반 `EL_input`. (키·노드·프로퍼티 = 카탈로그)
+- **★ use_form은 프로퍼티가 수십 개(boolean/swap/text)라 0부터 구성하면 오류가 잦다 → 정본 인스턴스를 clone.** DS 레퍼런스 예시나 이미 올바르게 구성된 화면의 use_form 인스턴스를 `clone()`해 **텍스트(타이틀·placeholder·안내)와 visible만 오버라이드**한다(주요 프로퍼티 목록은 카탈로그). 타이틀 텍스트는 내부 타이틀 노드 직접 오버라이드.
+- **바텀 고정 1차 액션 = `btn54_main_set`**(풀폭). `++Bottom` 프레임 안에서 `UI/Navigation Bar`/`Home Indicator` 위에 얹는다(§C). 변형: Default(활성)·disabled(비활성)·sub·icon+btn54. raw 버튼·`btn60` 직접 사용 금지. (키·라벨 노드 = 카탈로그)
 - **DS에 매칭 컴포넌트가 없으면**: 직접 그리되 ① 비슷한 스타일로 정리하고 ② **활용 가능한 DS 패턴(인풋 상위 타이틀·라벨·헬프텍스트 등)은 공통 적용**하며 ③ 색·타이포는 §K로 토큰 바인딩. 그래도 핵심 컴포넌트가 없으면 §H처럼 사용자에게 소스 확인.
 - **교체 시 옛 bespoke는 삭제가 아니라 `visible=false`로 숨김**(추적·복구용, 보호 레이어 원칙). 숨긴 노드는 렌더되지 않아 이중 테두리 없음(§F).
 
 ## M. 공통 픽스 컴포넌트 카탈로그 (반복 패턴 = 정본 1벌)
-자주 쓰는 오버레이·블록·안내는 매번 새로 만들지 말고 **아래 정본 인스턴스를 clone**한다(use_form과 동일 원칙 — §L). 정본은 작업 파일 `J483aVvinTZn5OHSdCAiE8`의 레퍼런스 페이지(음수 X 영역)에 인스턴스로 있고 HPDS DS 컴포넌트가 백킹한다. **clone 후 텍스트·visible·variant만 오버라이드**, 색·타이포는 §K 토큰 유지, 옛 bespoke는 `visible=false`(§L).
-- 적용 시점에 정본 노드가 옮겨졌으면 `search_design_system`(컴포넌트명)으로 DS 컴포넌트를 직접 import. 정본 노드 ID는 같은 파일 내 빠른 clone 소스다.
-
-| # | 용도 | 정본 노드 | 핵심 구조 / 컴포넌트 | 적용 |
-| --- | --- | --- | --- | --- |
-| M-1 | 레이아웃 좌우 마진 | — | — | body 콘텐츠 거터 **24**(§C). 고정 헤더/풋터 제외 |
-| M-2 | 결과(완료·실패·대기) 타이틀+서브 | `409:6524`(Message `409:6526`) | Message(center·gap16) = Container(gap12)[타이틀 `Title/H1_B_24`·gray700 + 서브 `Title/H4_B_18`·primary500] + 본문 `Body/P3_R_14`·gray600 | §C-결과 |
-| M-3 | 셀렉트 박스 → 리스트 | `409:6368` | `BottomSheet` = Container[header(Close `icon24` + `Title`) + **`EL_bottom_sheet/셀렉트기본`(`409:6376`)**] + Gradient + Home Indicator | 모든 select(통신사·국가·옵션) 탭 시 공통 |
-| M-4 | 세부 안내 시트 | `409:5707`(BottomSheet `409:5708`) | 아이콘+타이틀 헤더 + STEP 본문 블록 + 하단 버튼 | "자세히/이용안내" 등 상세 가이드 |
-| M-5 | 컨펌·서버에러 팝업 | `409:5709`(Popup `409:5711` > `Popup Content` `409:5712`) | 본문 텍스트 + 취소/확인 2버튼(307 폭) | 실행 전 확인 다이얼로그 **및 서버 응답 에러** |
-| M-6 | 안내 인포박스 | `409:5877`(`notification`) | 아이콘(`ico20/info2`)+텍스트, radius12·pad16/12 | 안내 문구. variant 색: **red=부정·blue=긍정·gray=안내** |
-| M-7 | 결과 상세 내역 | `409:5534`(`ui/detail`) | 라벨+값 행 + divider, bg `03(f4f7fd)`·radius12 | 완료/실패/대기에 핵심 데이터(계좌·금액 등). 강조값 primary |
-| M-8 | 빈 상태(empty) | `409:6567`(`Frame 1597884660`) | 아이콘 + 안내 타이틀(+선택 서브/CTA), VERTICAL | 리스트/검색 결과 없음. 컨텐츠 영역 중앙 배치, 타이틀만 교체 |
-| M-9 | 1-depth 탭(언더라인) | `514:8011`(`EL_tap_set_main`) / 아이템 `EL_tab_1deapt/active`(key `65977f0147f60808b9ac405b68b8b64be667749a`)·`unselected`(`311a01348d99ff2def2fb81f558b468124742c4b`) | **항목 수만큼 아이템 인스턴스를 가로 컨테이너에 조립**. 라벨=내부 `Tab Text`(직접 오버라이드·폰트 로드), 카운트 뱃지(`10건`)는 불필요 시 `visible=false`. 선택=active 1개·나머지 unselected | 화면 1차 분류 탭(상품 유형·사용/만료 등) |
-| M-10 | 칩(2-depth 필 탭) | `514:8012`(`tab_2dept`) / 아이템 `EL_tab_2deapt/on`(key `4237ca630836721b4c3287d6f840700e8ef4e908`)·`off`(`22572897527e4e2cef06a1c912e5b09a9b7add48`) | **항목 수만큼 인스턴스 조립**. 라벨=내부 `Tab Label`. 선택=on 1개·나머지 off | 필터/세그먼트 칩(지역·기간 등). **직접 그린 pill/chip 금지** |
-| M-11 | PIN/비밀번호 입력 화면 | `577:5988`(`PIN_004 PIN 비밀번호 입력`, key `75adbdeaacdbbf13bca84dbea67c4374b1a93ad3`, 375×812 풀스크린) | 헤더+**6자리 PIN 도트**+**숫자 키패드(0-9·삭제·생체)**+변경 링크 **내장**. clone 후 헤더/타이틀/안내만 오버라이드, 도트 채움상태로 입력중 표현 | PIN/결제비밀번호 입력. **bespoke 키패드·도트 금지**(공통 정본). ⚠️ 내부 상태바가 `SF Pro Text`(미로드 폰트)면 loadFont try/catch — 인스턴스 nested라 append엔 무방 |
-| M-12 | 국기 이미지 | HDS 3.0 `icon_flag//{ISO코드}`(예 일본 `jp` key `91d09dc940c7c67db44b7e46a623c61439a0773e`; 전체 모음 `🌸[common] 2. Flag`). 사용 국가코드로 `search_design_system("flag {code}")` → key import | 국가/지역 표시에 **해당 국가 국기 심볼**을 import해 사용. **emoji(🇯🇵)·bespoke 국기 금지** |
-| M-13 | 필터·총 개수 노출 | `577:6685`(`main_icon/total_set`, key `c412841ea3a5840663a97374f7ce4405dbc498cc`) | `총 [Count]건/개` + **정렬 버튼**(거리순 등). `Count`·정렬 라벨만 오버라이드 | 리스트 상단 **결과 수 + 정렬** 노출 공통. bespoke "총 N개 · 정렬" 텍스트 금지 |
+자주 쓰는 오버레이·블록·안내(M-1~M-13)는 매번 새로 만들지 말고 **정본 컴포넌트를 import/clone**한다(use_form과 동일 원칙 — §L). **clone 후 텍스트·visible·variant만 오버라이드**, 색·타이포는 §K 토큰 유지, 옛 bespoke는 `visible=false`(§L).
+- **구체 부품 번호(componentKey·clone 노드·프로퍼티)는 `design-system-catalog.md`(부품 카탈로그)에 있다** — `knowledge-base` 스킬, 워크스페이스 `.planning/knowledge-base/design-system-catalog.md` 우선, 없으면 플러그인 시드(`templates/knowledge-base/design-system-catalog.md`). 카탈로그의 **방어적 해석 순서**(키 import → 이름 검색 폴백 → 노드 존재 확인 후 clone → 못 찾으면 사용자 플래그)를 따른다(아래 §L 동일). M-# 카테고리: M-2 결과 메시지·M-3 셀렉트시트·M-4 안내시트·M-5 팝업·M-6 인포박스·M-7 상세내역·M-8 빈상태·M-9 탭·M-10 칩·M-11 PIN·M-12 국기·M-13 필터/총개수·M-1 마진(규칙).
+- **clone형(팝업 M-5·시트 M-3/M-4·인포박스 M-6·상세 M-7·빈상태 M-8·결과 M-2)은 라이브러리 키가 없어 origin-file 한정** — 카탈로그 규약대로 타 환경에선 이름 검색/플래그로 처리(퍼블리시 시 키 획득). 정본 노드가 옮겨졌으면 `search_design_system`(컴포넌트명)으로 직접 import.
 
 - **★ clone-override 함정 2종(인포박스·M-8 등 가변 높이 컴포넌트에서 자주).** ① **불필요한 `setProperties` 금지** — 정본 인스턴스는 이미 원하는 variant·높이로 collapse돼 있는데, 같은 variant라도 `setProperties(Type=…)`를 호출하면 **메인 컴포넌트 기본 상태(모든 줄 노출·큰 높이)로 리셋**된다(예: red 인포박스가 60→380px). variant 변경이 꼭 필요할 때만 호출하고, 텍스트는 **렌더되는 TEXT 노드를 직접** 세팅(프로퍼티가 보이는 노드에 안 묶여 있을 수 있음). ② **auto-layout 부모에 append 시 `layoutGrow`/`layoutAlign`/`layoutSizingHorizontal` 점검** — 컴포넌트가 `layoutGrow=1`이면 **세로 auto-layout 부모에 들어가는 순간 세로를 꽉 채워 부풀어 깨진다**(결과·빈상태 화면 Body, 폼 content 모두 VERTICAL auto-layout인 경우 많음). append 후 **가변높이 컴포넌트는 `layoutGrow=0` + `counterAxisSizingMode='AUTO'`(높이 hug)**, 절대배치 필요 시 `layoutPositioning='ABSOLUTE'`. **auto-layout content 안 구성 자식은 width를 `layoutSizingHorizontal='FILL'`로 통일**(use_form·인포박스 등 — FIXED 폭이면 반응형 깨짐). 부모 content는 가능하면 `primaryAxisSizingMode='AUTO'`(height hug)로 spare 세로여백 제거(grow가 채울 여백 자체를 없앰).
 - **오버레이(M-3·M-4·M-5)는 별도 풀스크린 화면이 아니라 트리거 화면 위 오버레이**다 → 스토리보드에선 **트리거 화면 옆 상태 프레임**으로 둔다(상세케이스 방식, `storyboard-build` §6). 디스크립션에 **트리거(어디서 열리나)·복귀 경로**를 명시(`design-description`).
