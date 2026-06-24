@@ -32,7 +32,7 @@ flowchart TD
     Meeting --> Decide{"7단계 · 의사결정 확정<br/>decision-checklist D-n 최종화 (회의·사업부 HITL)<br/>→ prd-sdd-editing 으로 PRD/SDD 반영"}
     Decide --> Story["/storyboard · 8~11단계<br/>플로우·화면 인벤토리→policy-table→Figma 화면 생성·비주얼 게이트<br/>(storyboard-build → figma-design · figma-explore)"]
     Story --> Desc["/design-desc · 12단계<br/>화면 기획 디스크립션 작성+디자인 동기화(dev-detailed)<br/>(design-description → figma-design)"]
-    Desc --> Sync["/design-sync · 11/13 검증<br/>리플로우+동기화 검증+7항목 마감 게이트<br/>(design-description §6·7 · figma-design §A · storyboard-build §9)"]
+    Desc --> Sync["/design-sync · 11/13 검증<br/>리플로우+동기화 검증+7항목 마감 게이트<br/>(design-finalize 마감 시퀀스 → owner 스킬 참조)"]
     Sync -.->|13 high-fi 고도화·취향 확정 = 사람 몫| Done([디자이너 마감])
 ```
 
@@ -53,7 +53,7 @@ flowchart TD
 
 ## 스킬
 - **워크플로우(오케스트레이션)**: `planning-intake` · `domain-study` · `reference-research` · `tech-research` · `prd-author` · `sdd-author` · `meeting-synthesis`
-- **디자인 실현(8~13)**: `storyboard-build`(스토리보드 오케스트레이션) · `design-description`(디스크립션+동기화) · `figma-design`(Figma 쓰기 단일 방법론). 디자인 단계의 Figma "읽기"는 아래 공용 `figma-explore`·`image-explore` 를 그대로 재사용.
+- **디자인 실현(8~13)**: `storyboard-build`(스토리보드 오케스트레이션) · `design-description`(디스크립션+동기화) · `figma-design`(Figma 쓰기 단일 방법론) · `design-finalize`(마감 시퀀스 공용 단일 소스 — 리플로우→hug→겹침→7항목 검수→동기화, 방법은 owner 스킬 참조). 디자인 단계의 Figma "읽기"는 아래 공용 `figma-explore`·`image-explore` 를 그대로 재사용.
 - **소스별 읽기(7종)**: `notion-explore` · `figma-explore` · `local-source-ingest` · `web-explore` · `image-explore` · `slack-explore` · `gdrive-explore`
 - **공용**: `knowledge-base`(파일 KB 쓰기) · `decision-checklist`(기획·디자인 공백→추천안→최종결정, 같은 스키마 공유·영향 기준 분기) · `prd-sdd-editing`(편집 불변식·디자인 단계 편집 포함)
 
