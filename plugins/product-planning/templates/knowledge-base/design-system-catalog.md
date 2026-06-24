@@ -95,6 +95,61 @@
 | --- | --- | --- | --- | --- |
 | 리스트 상단 결과 수 + 정렬 | `c412841ea3a5840663a97374f7ce4405dbc498cc` | `577:6685` | `main_icon/total_set` | `총 [Count]건/개` + 정렬 버튼(거리순 등). `Count`·정렬 라벨만 오버라이드. bespoke "총 N개·정렬" 텍스트 금지 |
 
+## 뱃지 (Badge)  (M-14)
+| 용도 | 라이브러리 키 | clone 소스 노드 | 컴포넌트 이름 | 프로퍼티 · 메모 |
+| --- | --- | --- | --- | --- |
+| 상태/속성 라벨 — 작은 필(높이 20) | `2f317e64f15e2579d3206f60f464369fd498fab7` | `32146:209810` | `badge20` | property1: default `blue` / `black_20` / `blue_blue` / `black_20_squere` / `gray` / `red` / `green`. 필(radius100)·px8 py3. 라벨 텍스트만 오버라이드. 텍스트 `Caption/C1_R_12`(12px). bespoke 태그 금지 |
+| 상태/속성 라벨 — 큰 박스(높이 24) | `5949e86f1d8e37a710d89e985753581172abf003` | `32146:209811` | `Badge` | property1: default `gray_line` / `blue` / `default` / `fill_black_op40` / `green` / `red` / `blue_blue` / `fill_blue`. radius12·px8 py5. `fill_*`=강조(흰 텍스트)·`*_line`/연배경. 텍스트 `Caption/C1_R_12`. ⚠️large는 set 이름이 `Badge`(대문자)로 매칭 — 적용 전 1회 확인 |
+
+## 약관 동의 (Agreement)  (M-15)
+| 용도 | 라이브러리 키 | clone 소스 노드 | 컴포넌트 이름 | 프로퍼티 · 메모 |
+| --- | --- | --- | --- | --- |
+| 전체동의 + 개별 약관 체크리스트 | `0c9e5192b229d7b578bd9431870148de893157f7` | `35412:300417` | `Agreement` | "모두 동의" 헤더(`Title/H5_B_16`) + `EL_Agreement` 행들. show 토글로 행 수 조절, 각 행 = `[필수]` 라벨(`Body/P3_R_14`) + 체브론(상세 열기). 라벨·행 수만 오버라이드. 개별 행 컴포넌트 = `EL_Agreement`(set, 키 `c4f40f92dc42de2e75678e29edac5486c9e70f70`, property1 `text`/`title`). 체크 아이콘 `EL_agreement_check_big`/`_normal`. bespoke 체크리스트 금지 |
+
+## 섹션/폼 타이틀 (title 패밀리)  (M-16)
+| 용도 | 라이브러리 키 | clone 소스 노드 | 컴포넌트 이름 | 프로퍼티 · 메모 |
+| --- | --- | --- | --- | --- |
+| Body 제목 화면 표준(제목 24px + 설명 16px) | `edd62871bbf29690cfed1c10140a9fb9e67eca9f` | — | `title/24_16` | 타이틀(24px) + 설명(16px). **`figma-design` §47·§49 "제목 화면 = Body에 `title/24_16`"이 이 부품** — 스킬엔 이름만 있고 카탈로그 키가 미등록이던 갭을 키로 확정. ++Top/Body/++Bottom 골격의 Body 제목 |
+| 작은 폼/섹션 제목(제목 18px + 설명 16px) | `cf794f679b4141a6b2c83191c34348651f322df5` | `35595:67048` | `title/18_16` | 타이틀(`Title/H4_B_18`·gray900) + 설명(`Body/P2_R_16`·gray600, `showDescriptionText`로 on/off). 두 텍스트만 오버라이드. **결과 화면 타이틀은 M-2 `Message`** |
+
+> **위계로 택1.** 둘은 크기 위계 — 한 화면엔 위계에 맞는 **하나만** 쓴다(`24_16`=화면 주제목 / `18_16`=하위 섹션·폼 제목). 같은 자리에 겹치지 말 것. 주제목 + 독립 하위섹션 제목 공존은 복합 화면에서만 예외.
+
+## 인라인 텍스트 버튼 (btn_text)  (M-17)
+| 용도 | 라이브러리 키 | clone 소스 노드 | 컴포넌트 이름 | 프로퍼티 · 메모 |
+| --- | --- | --- | --- | --- |
+| 인라인 보조 액션(번역·더보기 등 밑줄 텍스트) | ⚠️미확인(아래 메모) | `30964:16290` | `btn_text_12` | 밑줄 텍스트(`Caption/C1_R_12`·gray700) + 선택 아이콘(`showIcon16`). 라벨·`showIcon16` 오버라이드. ⚠️12px 퍼블리시 키가 `search_design_system`에 안 떠 미확인 — 14px 자매 `btn_text_14`=`b75744829a2b391668445e846c95e672bd10ca94` 확인됨. 12px 퍼블리시 여부 확인 후 키 채우고, 없으면 이름검색/clone 폴백 |
+
+## 배너형 진입 버튼 (Button_68)  (M-18)
+| 용도 | 라이브러리 키 | clone 소스 노드 | 컴포넌트 이름 | 프로퍼티 · 메모 |
+| --- | --- | --- | --- | --- |
+| 아이콘+텍스트+화살표 배너(홈/리스트 진입 항목) | `d210cab183773d86fd61024014bdd1c81539880f` | `35461:69338` | `Button_68` | 480×68. icon40(좌) + 라벨(`Body/P1_R_18`·gray900) + 체브론 `icon16`(우). white·gray200 라인·radius8. 아이콘·라벨만 오버라이드. bespoke 배너 금지 |
+
+## 그리드 메뉴 항목 (menu)  (M-19)  ★clone형(미퍼블리시)
+| 용도 | 라이브러리 키 | clone 소스 노드 | 컴포넌트 이름 | 프로퍼티 · 메모 |
+| --- | --- | --- | --- | --- |
+| 국기/아이콘 + 라벨 그리드 셀(국가 선택 등) | — | `37101:97712` | `menu` | `icon_flag`(40) + 라벨(`Body/P3_R_14`·gray800·center), 70w 세로. 국기·라벨만 오버라이드. ⚠️라이브러리 미퍼블리시(search 0) → origin-file clone 또는 **M-12 `icon_flag//{ISO}`(키형) + 라벨** 조합으로 구성 |
+
+## 화면 크롬 — ++Top/++Bottom 시스템 골격  (M-20)
+> `figma-design` §C(++Top/Body/++Bottom)가 이름으로 참조하던 공통 골격. 화면 외곽 프레임·시스템 바.
+| 용도 | 라이브러리 키 | clone 소스 노드 | 컴포넌트 이름 | 프로퍼티 · 메모 |
+| --- | --- | --- | --- | --- |
+| 노치 프레임(아이폰 상단) | `deb65083b62f6b3505dc350f39933495786f0fd6` | — | `EL_iPhone with Notch` | `++Top` 최상단 디바이스 프레임 |
+| 상태바+홈바(오토레이아웃 미사용) | `82c978941dae87467d55d118d6ae83ea9415d185` | — | `Essential` | Status Bar + Home Bar(Home Indicator) 묶음. `++Top` 상단 / `++Bottom` 하단 시스템 바 |
+| 공통 24px 아이콘(체브론 등) | `6629c76bd797262456aba5f3864bedecc3f4d3a9` | — | `icon24` (set) | 헤더/리스트 아이콘. variant로 선택 |
+| 상단 앱바(헤더) | ⚠️확인 필요 | (예시 `36146:106685` Top Module) | `header/main` | HPDS `search`에 미surface — 별칭/clone 가능성. 백·X·타이틀 헤더. `app_loan_012` Top Module(§C 정본) 참조해 적용 후 키 확정 |
+| 하단 탭 내비 | ⚠️HPDS 미확인 | — | `UI/Navigation Bar` | 목록/홈 하단 탭. HPDS `search` 0(타 라이브러리만 존재) → 작업 파일 clone 또는 사용자 확인. **타 라이브러리 혼용 금지**(`figma-design` §83) |
+
+## 결과 상태 일러스트 (Glassmorphism)  (M-21)
+| 용도 | 라이브러리 키 | clone 소스 노드 | 컴포넌트 이름 | 프로퍼티 · 메모 |
+| --- | --- | --- | --- | --- |
+| 완료·처리중·실패 글래스 일러스트(~240×154) | `1914373c1111750bc38d04c20f15e64de1f60897` | — | `Glassmorphism` (set) | variant: 완료=`Pass_Image` / 처리중·대기=`wait_Image`(시계) / 실패=`error`. `figma-design` §C-결과 화면 Content. ⚠️미퍼블리시 시 import 실패 → §H 게시 요청(직접 그리지 말 것) |
+
+## 선택 표시 (Radio / Checkbox)  (M-22)
+| 용도 | 라이브러리 키 | clone 소스 노드 | 컴포넌트 이름 | 프로퍼티 · 메모 |
+| --- | --- | --- | --- | --- |
+| 단일 선택(라디오 박스) | `d51deca210b1b614bdbb823545497324faa1cf10` | — | `EL_Radio_box` (set) | 직접 그린 원 금지(§H). 2줄 케이스 = `Radio_box_set/2줄케이스`(`55c774a44f65e947fed8bc2ed22c3f08ebc5a7d6`) |
+| 체크박스(약관/멀티) | `f24bd9878684f79fd4f90dbe8929d366cb5214cf` | — | `EL_agreement_check_normal` (set) | 큰 체크 = `EL_agreement_check_big`(`c5903c01179b5c06bbae594b25c00b05c1d9a655`). 약관 묶음은 M-15 `Agreement` 가 내장 |
+
 ## 레이아웃 규칙 참조  (M-1)
 | 용도 | 값 | 비고 |
 | --- | --- | --- |
