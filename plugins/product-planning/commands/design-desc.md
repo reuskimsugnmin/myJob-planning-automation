@@ -15,3 +15,6 @@ argument-hint: [engagement-slug] [--figma-url url] [--scan|--apply] [--dev-detai
 - **claim↔노드 불일치**: 대조표에 ✗가 있으면 `design-description` 스킬의 동기화 규칙(§디자인 동기화·claim↔노드 대조표)대로 수정하거나, 노드 특정 불가 등 SKIP 조건이면 `SKIP: [이유]` 기록 후 사용자에게 항목별 확인.
 - **`--scan` 모드**: 변경 계획만 보고하고 적용은 사용자 검토 후 `--apply` 로.
 - **모호한 정책**: 의미가 불명확하면 자의 해석하지 말고 사용자 확인.
+
+## 다음 단계 (선택)
+- 이 커맨드는 마감에서 `design-finalize` 시퀀스(동기화+claim↔노드 대조표)를 **이미 자동 실행**한다. 이후 **전체 페이지 교차 검증**이 필요하거나 Figma에서 손으로 직접 편집했다면 `/design-sync` 로 1회 재트리거한다. high-fi 고도화·디자인 확정은 사람 몫.

@@ -1,6 +1,6 @@
 ---
 name: prd-sdd-editing
-description: 기존 PRD.md/SDD.md를 안전하게 수정·갱신·관리하는 공통 편집 불변식(단일 소스). ID 안정성, 요구사항 유실 방지, 변경마다 출처/changelog, 의사결정 체크리스트 컬럼 보존, 인라인 마커 동기화를 규정한다. prd-author·sdd-author·meeting-synthesis·decision-brief 등 PRD/SDD를 편집하는 모든 스킬이 따른다.
+description: 기존 PRD.md/SDD.md를 안전하게 수정·갱신·관리하는 공통 편집 불변식(단일 소스). ID 안정성, 요구사항 유실 방지, 변경마다 출처/changelog, 의사결정 체크리스트 컬럼 보존, 인라인 마커 동기화를 규정한다. prd-author·sdd-author·meeting-synthesis·decision-checklist 등 PRD/SDD를 편집하는 모든 스킬이 따른다.
 ---
 
 # PRD/SDD Editing (편집 불변식 · 단일 소스)

@@ -15,10 +15,10 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 | 4 기술 리서치 | 🤖 Claude | ✅ |
 | 5 PRD / (조건부)SDD | 🤖 Claude · 🧑 결정 | ✅ |
 | 6 회의록 종합(Google Doc/Slack → PRD/SDD 반영) | 🤖 보조 · 🧑 확인 | ✅ |
-| 7 의사결정 브리프 | 🤖 보조 · 🧑 결정 | ⬜ 추후 업데이트 예정 |
+| 7 의사결정 브리프(옵션·트레이드오프·추천) | 🤖 보조 · 🧑 결정 | ✅ 기존 도구로 수행(`decision-checklist`+`meeting-synthesis`) |
 | 8~13 Figma 스토리보드 · low/mid-fi 디자인 · 디스크립션 | 🤖 Claude · 🧑 확정 | ✅ (high-fi 고도화·디자인 확정은 사람) |
 
-> 현재 릴리스는 **단계 1~6 + 8~13(디자인)**을 제공합니다. **7(의사결정 브리프)**만 추후 예정입니다.
+> 현재 릴리스는 **단계 1~13 전체의 자동화 범위**를 제공합니다. 사람 몫(7 상위 전략의 *최종 결정*, 13 high-fi 디자인 확정)만 Claude가 보조하며, 7단계 의사결정 브리프는 전용 스킬 없이 `decision-checklist`+`meeting-synthesis`로 처리합니다.
 
 ## 핵심 개념 (먼저 이해하면 좋은 것)
 
@@ -29,7 +29,7 @@ PM/PD 제품 기획 워크플로우를 자동화하는 **Claude Code 플러그�
 
 ## 도구 구성
 
-아래 플로우차트는 각 도구가 **어떤 워크플로우 작업**을 맡는지, 그리고 **인입 후 레거시/신규 분기**가 어떻게 갈라지는지를 보여줍니다. 둥근 노드는 시작/HITL 분기, 사각 노드는 `커맨드 · 단계`와 그 안에서 쓰는 스킬(괄호)입니다. **8~13 디자인 단계는 PRD 확정 후 명시적 별도 호출**(`/storyboard`·`/design-desc`·`/design-sync`)로 동작합니다(아래 본문 참조). 점선 박스(7단계 의사결정 브리프)만 아직 도구가 없어 *추후 업데이트 예정*입니다.
+아래 플로우차트는 각 도구가 **어떤 워크플로우 작업**을 맡는지, 그리고 **인입 후 레거시/신규 분기**가 어떻게 갈라지는지를 보여줍니다. 둥근 노드는 시작/HITL 분기, 사각 노드는 `커맨드 · 단계`와 그 안에서 쓰는 스킬(괄호)입니다. **8~13 디자인 단계는 PRD 확정 후 명시적 별도 호출**(`/storyboard`·`/design-desc`·`/design-sync`)로 동작합니다(아래 본문 참조). 점선 박스는 **사람 몫**(7 상위 전략 결정·13 high-fi 확정)으로 Claude는 보조만 합니다. 7단계 의사결정 브리프(옵션·추천)는 별도 도구 없이 `decision-checklist`+`meeting-synthesis`로 생성·반영합니다.
 
 ```mermaid
 flowchart TD
@@ -56,7 +56,7 @@ flowchart TD
 
     Meeting --> Storyboard["/storyboard · 8~11단계<br/>스토리보드·low/mid-fi 디자인 실현<br/>(storyboard-build → figma-design)"]
     Storyboard --> DesignDesc["/design-desc · 12단계<br/>상세 디스크립션 + 동기화<br/>(design-description)"]
-    DesignDesc --> DesignSync["/design-sync · 검증<br/>디스크립션↔디자인 동기화·9항목 자동 검수"]
+    DesignDesc --> DesignSync["/design-sync · 검증<br/>리플로우+동기화 검증+7항목 마감 게이트<br/>(design-finalize 마감 시퀀스 → owner 스킬 참조)"]
 
     DesignSync -.-> Future
     subgraph Future ["사람 몫 · Claude 보조 (도구 외)"]
@@ -82,11 +82,11 @@ flowchart TD
 | `/design-desc` | 12 | 화면 디스크립션 작성(뱃지 매칭) + 디자인 동기화 |
 | `/design-sync` | 11/13 | 디스크립션↔디자인 동기화 검증(claim↔노드 대조표) |
 
-**스킬 (20)** — 방법론(커맨드 없이 대화 중 자동 트리거 가능)
+**스킬 (21)** — 방법론(커맨드 없이 대화 중 자동 트리거 가능)
 
 - **워크플로우(오케스트레이션, 7)**: `planning-intake` · `domain-study` · `reference-research` · `tech-research` · `prd-author` · `sdd-author` · `meeting-synthesis`
 - **소스별 읽기(7)**: `notion-explore` · `figma-explore` · `local-source-ingest` · `web-explore` · `image-explore` · `slack-explore` · `gdrive-explore`
-- **디자인 쓰기(3, 단계 8~13)**: `figma-design`(쓰기 원시·3세트 구조·골격·swap/심볼/폰트) · `storyboard-build`(화면 실현·모드 A/B·비주얼 게이트) · `design-description`(디스크립션+동기화·뱃지 매칭·대조표)
+- **디자인 쓰기(4, 단계 8~13)**: `figma-design`(쓰기 원시·3세트 구조·골격·swap/심볼/폰트) · `storyboard-build`(화면 실현·모드 A/B·비주얼 게이트) · `design-description`(디스크립션+동기화·뱃지 매칭·대조표) · `design-finalize`(마감 시퀀스 공용 단일 소스 — 리플로우→hug→겹침→7항목 검수→동기화, 방법은 owner 스킬 참조)
 - **공용(3)**: `knowledge-base`(파일 KB 쓰기) · `decision-checklist`(기획 공백→추천안→최종결정) · `prd-sdd-editing`(문서 편집 불변식)
 
 **서브에이전트**: `research-agent` — 대량/병렬 자료 수집을 격리 컨텍스트에서 수행(방법은 읽기 스킬 참조, 요약만 반환).
@@ -150,11 +150,11 @@ flowchart TD
 - **입력**: 회의 소스 링크(인자). `sources.json` `gdrive.meeting_notes_folder`·`slack` 참고.
 - **산출물**: 갱신된 `PRD.md`/`SDD.md` + `research/meetings/<날짜>.md`(회의 digest·결정·반영 변경점).
 
-### 7단계 · 의사결정 브리프 ⬜
-- **`decision-brief`**: 체크리스트 미결 항목에 대한 옵션·트레이드오프·추천 브리프 — *추후 업데이트 예정*.
+### 7단계 · 의사결정 브리프 ✅ *(기존 도구로 수행)*
+- 전용 스킬을 추가하지 않습니다. 미결 항목의 **옵션·트레이드오프·추천 브리프**는 `decision-checklist`(추천안·임시 채택)가 PRD/SDD 하단 의사결정 체크리스트로 생성하고, **최종 결정 반영**은 `/meeting-synthesis`(또는 사용자 직접 확정)가 담당합니다. 상위 전략의 *최종 결정* 자체는 사람 몫(`⛳DECISION`).
 
-### 8~13단계 · 디자인(스토리보드·low/mid-fi·디스크립션) ✅ *(v0.7)*
-PRD 확정 후 **명시적 별도 호출**로 시작합니다(디자인 취향·high-fi 확정은 사람 몫이라 `/new-planning` 파이프라인에 포함하지 않음). Figma 쓰기는 단일 파일 변형·HITL이 많아 **메인 컨텍스트(Skill)** 가 소유합니다(sub-agent 없음).
+### 8~13단계 · 디자인(스토리보드·low/mid-fi·디스크립션) ✅ *(v0.7 도입 · ~v0.9.15 하드닝)*
+PRD 확정 후 **명시적 별도 호출**로 시작합니다(디자인 취향·high-fi 확정은 사람 몫이라 `/new-planning` 파이프라인에 포함하지 않음). Figma 쓰기는 단일 파일 변형·HITL이 많아 **메인 컨텍스트(Skill)** 가 소유합니다(sub-agent 없음). 마감 절차는 3개 디자인 커맨드 공용 `design-finalize`(리플로우→hug→겹침→7항목 검수→동기화)로 수렴했고, 정본 부품은 KB `design-system-catalog`(HPDS 부품 카탈로그)에서 식별합니다.
 
 - **8~11 `/storyboard [slug] --figma-url <URL> [--mode A|B]`**: `PRD.md`(+`SDD.md`)에서 화면목록·정책·노출조건·플랫폼분기·에러를 뽑아 `design/policy-table.md` 를 만들고, 기존 파일을 스캔해 갭 분석 → **모드 선택**(A 운영 in-place / B 백지 구축, 프로젝트 유형 기반 추천) → 화면 생성·TO-BE 반영(`figma-design` 방법론: ++Top 골격·라이브러리 조립·swap 결함·심볼 처리) → **비주얼 게이트**(`get_screenshot` 렌더 vs PRD).
   - **사람 확인(HITL)**: 모드 선택, 갭 분석 결과 확인, 비주얼 게이트 통과 판정, 전략적 UX 배치(`⛳DECISION`).
