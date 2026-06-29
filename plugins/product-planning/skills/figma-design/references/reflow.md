@@ -31,6 +31,9 @@
     rowTop += rowH + gap(60)
   return 매칭 카운트(행수·미매칭) // dry-run 보고로 오매칭 0 확인
   ```
+  - **★ 행 = SB_Templates + SECTION + Description 3세트 "원자 단위" (사고 재발 방지·필수).** 화면 삭제·이동은 **세 노드를 항상 함께** 처리한다 — **부분만 골라 옮기거나 지우지 말 것**(SB 밴드 누락/잔존·SB↔섹션 어긋남을 유발). 화면 삭제 = 그 행의 **SB_Templates 밴드까지** 삭제. 행 이동 = SB+SECTION+Description를 같은 양만큼.
+  - **★ 구조 read·겹침 audit는 `SB_Templates` INSTANCE를 반드시 포함(INSTANCE를 필터에서 빼지 말 것).** SB를 빼고 SECTION만 보면 **SB 어긋남을 구조적으로 못 본다**(실패 사례: SB를 필터 제외해 3세트를 2세트로 오독 → e02 섹션만 키워 겹침·e12~e16 SB 미이동·e11 SB 잔존). 겹침 검사는 SB·SECTION·Description 전부 대상.
+  - **★ raw `use_figma` 손편집 후엔 자동 마감이 안 돈다 → 반드시 `/design-sync` 1회 실행**(아래 완료 게이트). 손편집 + 자작 부분 검사로 끝내지 말고 이 리플로우/겹침0 audit를 태운다.
   - **★ 리플로우 대상 페이지 = 편집한 SECTION의 parent 페이지.** `figma.currentPage`(호출 간 첫 페이지로 리셋)·문서 첫 페이지를 가정 금지 — 디자인 SECTION·Description이 별도 페이지에 있을 수 있고(스토리보드가 자체 페이지), 첫 페이지엔 **무관한 다른 스토리보드**가 있을 수 있다. 편집 노드에서 `node.parent`(PAGE)로 실제 페이지를 구해 **그 페이지의 행만** 리플로우한다(실패 사례 e01: 디스크립션이 별도 페이지 `466:5338`인데 첫 페이지 `0:1`엔 Taxi 스토리보드 → 첫 페이지를 스캔하면 무관 스토리보드를 옮길 뻔).
   - **★ idempotency 검산(타 행 오이동 방지).** cascade 적용 전, 편집 행 외 **미편집 행 1~2개**의 계산 `rowH = OFF + max(secExt, descExt) + PAD`가 현재 SB height와 일치하는지 먼저 검산한다. 불일치면 OFF/GAP/PAD 상수가 페이지 컨벤션과 달라 타 행을 잘못 이동시킨다 → 상수 보정 후 진행(편집 행 + 그 아래 cascade만 움직여야 정상. e01에선 e02/e03/e04 SB height 일치 확인 후 진행 → 타 행 오이동 0).
   - **★ `desc.height`(및 `sec.height`)를 직접 신뢰하지 말 것.** Description은 `primaryAxisSizingMode='AUTO'`여야 하고, 행 높이·겹침은 **`absoluteBoundingBox` + 자식 콘텐츠 최대 extent**(`realBottom`)로 계산한다 — FIXED 프레임은 콘텐츠가 넘쳐도 height가 안 변해 검사를 속인다(실패 사례 e05: 697 frame에 1204 콘텐츠 → e-loading 침범).

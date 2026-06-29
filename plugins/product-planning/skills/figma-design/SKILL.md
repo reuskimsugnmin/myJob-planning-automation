@@ -31,7 +31,7 @@ Figma "쓰기"의 단일 소스. 화면을 **설계로 실현**하고 안전하�
 - 신규/수정 화면은 항상 이 3세트 구조로 맞춘다.
 - **수직 행 리플로우 — 규칙이 아니라 "실행 패스"(겹침 금지).** `SB_Templates` 카드·SECTION·Description은 **부모 auto-layout 없이 절대좌표로 놓인 독립 형제** + `SB_Templates`는 **고정 높이 인스턴스**라 Description가 길어져도 자동으로 안 커지고 안 밀린다 → **반드시 리플로우 패스를 명시적으로 실행**한다(하드코딩 id 금지·페이지에서 행을 스스로 발견 → SB 카드 height 리사이즈 + SECTION 콘텐츠 포함 리사이즈 + 행 Y cascade + SB 라벨 섹션명 동기화).
   - **완료 게이트(필수).** 디자인/디스크립션을 **편집한 커맨드는 마감에서 이 루틴을 항상 실행**한다(`storyboard-build`/`design-description`/`/design-sync`). 사용자 요청 불필요·자동. *단* Figma 손편집은 `/design-sync`로 1회 트리거.
-  - **상세 절차는 `references/reflow.md`를 읽어 따른다** — 자동발견 루틴(SB→SECTION/Description 매칭)·`realBottom` 계산(`node.height` 금지)·idempotency 검산(타 행 오이동 방지)·parent 페이지 한정·4단계 라벨 동기화 코드·미매칭 보고.
+  - **상세 절차는 `references/reflow.md`를 읽어 따른다** — 자동발견 루틴(SB→SECTION/Description 매칭)·**행 3세트 원자 단위·SB INSTANCE 포함 read**(부분 행 조작 금지)·`realBottom` 계산(`node.height` 금지)·idempotency 검산(타 행 오이동 방지)·parent 페이지 한정·4단계 라벨 동기화 코드·미매칭 보고.
 
 ## B. 화면 설계 4단계 (이 순서로)
 2단계(골격 세팅)와 3단계(세부 UX)를 **분리**하는 게 핵심 — 2에서 멈추면 1:1 교체가 되어 설계가 빠진다.
