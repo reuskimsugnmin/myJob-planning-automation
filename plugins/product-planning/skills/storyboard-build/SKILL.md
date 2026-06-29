@@ -66,6 +66,7 @@ description: PRD/SDD를 Figma 스토리보드·low/mid-fi 디자인으로 실현
 - **갭 분석 결과를 사용자에게 제시하고 확인받은 뒤** 실행(잘못된 대량 생성 방지).
 - 모드 A: 변경분만 in-place 반영(옛 요소 완전 삭제, 뱃지·디스크립션 보존). 모드 B: `figma-design` 의 ++Top 골격 + region↔컴포넌트 매핑 + zero-bespoke 마감으로 **한 패스에 완전한 구조**(Description 스캐폴드 포함)로 산출.
 - "누락 0개"여도 끝이 아님 — **기존 화면도 PRD TO-BE 항목 단위로 대조**해 반영. 5개씩 배치, 15개 초과는 범위 분할.
+- **콘텐츠 채움 규약(`--fidelity high` 시 — F-1 콘텐츠 레인).** 화면을 채울 때 ① **PRD 사실값 우선** ② 없으면 `engagements/<slug>/design/content-kit.md`(시드 `templates/design/content-kit.template.md`)의 **`provenance: illustrative` 예시 콘텐츠**로 채우되 **디자인에만 반영**(디스크립션 claim·PRD 미반영) ③ 둘 다 없으면 기존 `⛳`. illustrative로 채운 값은 디스크립션에 **"예시값" 표기**(`design-description §4`), **소셜프루프 수치는 화면에도 "예시" 맥락**. **기본 `mid`/미지정이면 적용 안 함**(빈칸은 ⛳ 그대로 — 기존 동작). 누출 방지는 `design-finalize` 누출 검사(예시값이 PRD/디스크립션 개발계약에 새면 FAIL).
 - `⛳DECISION`: 전략적 UX 배치(핵심 정보 우선순위·차별화 요소)는 단정하지 말고 옵션·추천만. **이런 결정은 인라인 단정 대신 `decision-checklist` 스키마로 `policy-table.md` 하단 "디자인 의사결정 체크리스트"에 `D-n` 적재**(추천안·임시채택까지 AI, 최종 결정은 사람). 화면 정책의 `의사결정`은 `→ D-n` 포인터로. **결정이 서비스정책·기획요건에 영향을 주면 `PRD/SDD C1 D-n`에 등록·본문 갱신(`prd-sdd-editing` 준수) + policy-table엔 `→ PRD D-n` 링크**; 순수 표현 결정은 PRD를 수정하지 않는다(`decision-checklist` 영향 기준 분기).
 
 ### 4. 비주얼 게이트 (필수 HITL)
@@ -122,6 +123,8 @@ description: PRD/SDD를 Figma 스토리보드·low/mid-fi 디자인으로 실현
 - **#9 컴포넌트 hug 무결성** — 삽입/clone한 컴포넌트가 **높이 1px 붕괴(숨겨짐)** 또는 **FIXED 프레임 흰 여백**(visible 콘텐츠보다 훨씬 큼)인지 전수 검사·자동 hug 수정(`figma-design` §F-3 스니펫). **화면 흰 여백이 많으면 이 결함을 의심**한다. 마감 전 자동 실행해 붕괴/흰여백 0.
 
 > **#5·#6·#2는 의미 판단이 섞여 100% 스크립트화가 어렵다 → 파싱으로 후보를 뽑아 리포트하고 HITL.** #1·#7·#8·#9는 스크립트로 자동 판정·자동수정. 리포트는 9행 PASS/FAIL 표로 항상 남긴다(변경 0이어도 증거).
+
+- **fidelity 목표가 `high`면(opt-in)** 위 9항목(구조 검수) 뒤에 **`design-finalize`의 high 추가 패스**(콘텐츠 현실성·머천다이징·일러스트·강조·구조 적정성 리포트 + illustrative 누출 검사 + 사람 잔여 punch-list)를 이어 실행한다. **단일 소스 = `design-finalize` fidelity 레벨**(여기 복붙 안 함). 기본 `mid`/미지정이면 9항목까지가 종착(기존 동작 불변).
 
 ## 원칙
 - **흐름 먼저, 화면은 그다음.** 화면 나열이 아니라 end-to-end 플로우를 설계하고 인벤토리 완전성(완료·실패·로딩)을 확인한 뒤 화면을 만든다(§0).

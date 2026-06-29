@@ -17,6 +17,7 @@ description: Figma 스토리보드 화면에 한국어 기획 디스크립션을
 - **`PRD.md` + `engagements/<slug>/design/policy-table.md`**(있으면 `SDD.md`)를 **로드**한다. 없으면 멈추고 사용자에게 확인(근거 없는 디스크립션 금지).
 - 각 요소의 대괄호 필드(`[Validation]`·`[데이터]`·`[상태]`·`[인터랙션]`·`[수용 기준]` 등)는 **그 요소의 FR·유저스토리·수용기준·policy-table 행에서 값을 옮겨** 채우고 `(FR-n)/(US-n)/(P-XX)` 로 출처 인용한다.
 - PRD/policy-table에 그 값이 **없으면 지어내지 말고 `[미확정 D-n]`/`⛳DECISION`** 으로 표기(공백을 드러내 사용자/SDD에 위임). 그 `D-n`은 **`policy-table.md` 디자인 의사결정 체크리스트(`decision-checklist` 스키마)에 등록**하고, **서비스정책·기획요건에 영향을 주면 `PRD/SDD C1 D-n`에 등록·본문 갱신(`prd-sdd-editing` 준수) + policy-table엔 `→ PRD D-n` 링크**(고아 마커 금지·`decision-checklist` 영향 기준 분기). "화면을 보니 대충 이럴 것"이라는 추측 서술 금지.
+- **(high 모드) 예시값(illustrative) 레인.** `--fidelity high`에서 화면이 `content-kit.md`의 `provenance: illustrative` 콘텐츠로 채워졌으면, 디스크립션엔 그 값을 **"예시값"으로 명시**(개발이 사실로 오해 금지). **단 `[데이터]/[수용 기준]` 등 개발계약 필드엔 illustrative 금지** — 거긴 PRD 사실값(`spec`) 또는 `[미확정 D-n]`만. (1급 원칙 "지어내지 않는다"의 *통제된* 확장: 예시는 **디자인 레이어 표현**, 개발계약은 사실만. → `design-finalize` 누출 검사가 위반을 적발.)
 
 ## 0. 핵심 원칙
 **커버리지 — 모든 화면.** 대상 페이지의 **모든 SECTION 화면**에 Descriptions 프레임·뱃지가 있어야 완료다. 일부 화면만 작성하고 끝내면 **미완료**이며, 미처리 화면 목록을 사용자에게 보고한다(특정 화면을 의도적으로 제외하려면 사용자 확인). `.md` 파일만 쓰고 캔버스에 뱃지/annotation을 안 만든 화면은 미처리로 본다.
@@ -66,6 +67,7 @@ Description 프레임 구조(운영 양식): `Description > [헤더 내비 프�
 - **(d) 서브 뱃지** — `[세부]` 섹션에 `(Na) 요소명: 설명` 한 줄씩.
 - **(e) 오버레이 배지 = parent + 액션 하위배지** · **(f) 안내 문구 = 인포박스 variant(red/blue/gray)** — **상세는 `references/desc-format.md`를 읽어 따른다.**
 - 플로우차트(CONNECTOR 1개 이상)면 `[플로우]` 항목 추가. 숨김 노드(`visible=false`)는 `[미노출 항목]`.
+- **예시값(illustrative) 표기(high 모드).** content-kit `illustrative` 콘텐츠로 채운 텍스트·수치는 본문에 **"예시값"** 으로 표기(개발이 사실로 오해 금지). `[데이터]/[수용 기준]` 등 **개발계약 필드엔 넣지 않는다**(§선행 참조).
 - 짧은 단일 요소는 (a) 역할 문장만으로 충분(섹션 라벨 없이 평문 1~2문장 허용).
 
 `${CLAUDE_PLUGIN_ROOT}/templates/design/design-description.template.md` 의 슬롯 포맷을 따른다.
