@@ -1,13 +1,13 @@
 ---
 description: PRD/SDD를 Figma 스토리보드·low/mid-fi 디자인으로 실현 (워크플로우 8~11)
-argument-hint: [engagement-slug] [--figma-url url] [--mode A|B]
+argument-hint: [engagement-slug] [--figma-url url] [--mode A|B] [--fidelity mid|high]
 ---
 
 `storyboard-build` 스킬을 사용해 PRD를 Figma 디자인으로 실현하세요. 대상 engagement: $ARGUMENTS. `--figma-url` 로 스토리보드 대상 파일/페이지 URL을(미지정 시 `.planning/sources.json` `figma.storyboard_target` 폴백), `--mode` 로 A(운영 in-place)/B(백지 구축)를 지정할 수 있습니다(미지정이면 프로젝트 유형 기반 추천 후 확인).
 
 먼저 **end-to-end 플로우·화면 인벤토리**(처리중·실패·완료·빈상태 포함)를 도출해 FigJam `generate_diagram` 흐름도(`design/flow.md`)로 확인받은 뒤, `PRD.md`(+`SDD.md`)에서 화면목록·정책·노출조건·플랫폼분기·에러를 추출해 `engagements/<slug>/design/policy-table.md` 를 만들고, 기존 파일을 스캔해 갭 분석 → 사용자 확인 → 화면 생성/TO-BE 반영(쓰기 방법은 `figma-design` 스킬) → `get_screenshot` 비주얼 게이트로 검증하세요. 산출물은 모두 **현재 작업 디렉토리**의 `engagements/<slug>/design/` 에 둡니다.
 
-**디자인 4단계 워크플로우**: (1)디자인 생성(해피패스) → (2)`/design-desc` 디스크립션 → (3)상세 케이스(스킬 §6, **의미있는 분기만**: 에러·empty·valid·로딩 — 관련 SECTION 내 메인 옆 배치, 미세 상태는 variant) → (4)최종 3자 매칭(뱃지↔디스크립션↔디자인, 스킬 §7). 토큰 바인딩·DS 컴포넌트 매칭(`figma-design` §K/§L)을 준수하세요. **마감에서는 `design-finalize` 스킬의 마감 시퀀스를 항상 실행**(리플로우→hug→겹침→7항목 검수, 겹침 0)하세요 — 사용자 요청 없이 자동.
+**디자인 4단계 워크플로우**: (1)디자인 생성(해피패스) → (2)`/design-desc` 디스크립션 → (3)상세 케이스(스킬 §6, **의미있는 분기만**: 에러·empty·valid·로딩 — 관련 SECTION 내 메인 옆 배치, 미세 상태는 variant) → (4)최종 3자 매칭(뱃지↔디스크립션↔디자인, 스킬 §7). 토큰 바인딩·DS 컴포넌트 매칭(`figma-design` §K/§L)을 준수하세요. **마감에서는 `design-finalize` 스킬의 마감 시퀀스를 항상 실행**(리플로우→hug→겹침→7항목 검수, 겹침 0)하세요 — 사용자 요청 없이 자동. **`--fidelity`(기본 `mid`)** 로 목표 레벨을 받습니다 — **`high`(opt-in)** 면 마감 1~5(구조) 뒤에 high 추가 패스(콘텐츠 현실성·머천다이징·일러스트·강조·구조 적정성 리포트 + illustrative 누출 검사 + **사람 잔여 punch-list**)를 실행합니다(`design-finalize` fidelity 레벨 참조). `mid`/미지정은 기존 동작 그대로.
 
 ## 일시정지 규칙
 - **플로우 인벤토리 게이트(§0)**: 화면 생성 전 end-to-end 플로우·화면 인벤토리(처리중·실패·완료·빈상태 포함)를 도출해 FigJam `generate_diagram` 흐름도로 제시하고 **완전성을 확인받은 뒤에만** 생성. `PRD.md`의 `B5 흐름`이 비면 멈추고 보완 요청.
