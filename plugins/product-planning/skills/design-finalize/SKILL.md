@@ -16,6 +16,8 @@ description: 디자인 단계(스토리보드·디스크립션·동기화) 공�
 2. **컴포넌트 hug 무결성** — 삽입/clone 후 높이 붕괴(<6px)·흰 여백 자동 수정. → `figma-design` §F-3(`skills/figma-design/scripts/hug-fix.js`).
 3. **행 겹침 0 검사** — `absoluteBoundingBox`+자식 extent로 SECTION·Description 교차 0 확인(`node.height` 금지). → `storyboard-build` §8(`skills/storyboard-build/scripts/reflow-audit.js`).
 4. **자동 마감 검수 게이트(7항목)** — DS 커버리지·액션 배지·배지↔디스크립션·양식·엣지케이스→디자인·요소→목적지·인스턴스 무결성. 항목별 PASS/FAIL 리포트. **#1·#7·#8·#9 자동수정 / #2 명확분 자동·애매분 리포트 / #5·#6 누락 화면 리포트 후 HITL**. → `storyboard-build` §9(`skills/storyboard-build/scripts/closeout-audit.js`).
+   - **★ #2(액션 배지)를 "배지 수 == 주석 수" 카운트로 대체하지 말 것 — 그건 통과 근거가 아니다.** base 화면만 세면 오버레이 서브액션이 통째로 빠져도 카운트가 맞아 **오탐 PASS**가 난다(실사례: s02 시트 옵션·닫기, s03 팝업 취소/중단하기 배지 0인데 base 5==5·2==2로 통과). **오버레이 서브액션(시트 옵션 행 각각·팝업 버튼 각각·닫기) 포함 모든 인터랙티브 요소**의 edge-최근접 배지 `miss=0`을 스크립트로 확인(`closeout-audit.js #2`).
+   - **★ 비주얼 렌더 게이트 필수(카운트/노드명 아닌 렌더 판정).** 마감 통과 선언 전 각 화면 — **특히 오버레이(시트·팝업·모달) 상태가 있는 화면은 반드시 `get_screenshot`으로 렌더까지 눈으로 확인**한다(오버레이 서브액션 배지·컴포넌트 깨짐·오버플로는 좌표/카운트만으로는 안 보인다). 구조 audit만으로 마감 선언 금지.
 5. **(디스크립션을 편집했으면) 동기화 + claim↔노드 대조표** — Description 내용을 실제 디자인에 반영(visible/variant/characters)하고, claim=실제 대조표로 3자 일치 증명(변경 0건도 표로). → `design-description` §6·§7.
 
 - **완료 게이트(필수).** 위 1~5를 마치고 **겹침 0 + 7항목 리포트(7행 표 + 증거) + (편집 시)대조표**를 보고에 포함해야 마감이다. 미매칭(비표준 행)은 임의 이동 말고 카운트로 보고.

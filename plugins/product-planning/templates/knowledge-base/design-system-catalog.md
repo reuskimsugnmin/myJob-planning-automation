@@ -4,14 +4,19 @@
 > **정본 = 워크스페이스** `.planning/knowledge-base/design-system-catalog.md`(팀이 직접 큐레이션·수정). 이 템플릿은 **플러그인 기본 시드**(🔫HPDS_1.0)다 — 다른 팀은 자기 디자인시스템 값으로 교체.
 > **규칙(언제 무엇을 쓰나·조립 방식·clone-override 함정)은 `figma-design` 스킬에 있고, 여기엔 구체 식별자만** 둔다. 본문 디스크립션엔 이 컴포넌트명을 쓰지 않는다(`design-description` §4).
 
-## 사용 규약 — 방어적 해석 순서 (이식성)
-컴포넌트를 적용할 때 아래 순서로 해석한다. **타 사용자 환경(라이브러리 미구독·다른 파일)에서도 에러로 죽지 않게**:
-1. **키형**(`라이브러리 키` 있음) → `importComponentByKeyAsync(key)` → `createInstance`.
-2. 1 실패(라이브러리 미구독/키 변경/재퍼블리시) → **`search_design_system`로 `컴포넌트 이름` 재검색**(그래서 이름 칸이 필수).
-3. **clone형**(`clone 소스 노드`만 있고 키 없음) → 현재 작업 파일에 **그 노드가 실재하는지 먼저 확인** → 있으면 clone, 없으면 시도하지 않는다(null clone 방지).
-4. 1~3 모두 실패 → **사용자에게 플래그**("부품 못 찾음 — 라이브러리 구독 또는 카탈로그 갱신 필요"). **조용히 bespoke로 그리지 않는다**(§H 정신).
-- 빌드 전 `sources.json`의 `figma.design_system_files` 라이브러리가 구독됐는지 1회 확인(미구독이면 사용자에게 추가 요청).
-- ⚠️ **clone형은 origin-file 한정** — `clone 소스 노드`는 아래 "소스 파일"에만 존재한다. 타 파일/타 사용자 환경에선 무효 → 해당 컴포넌트를 **라이브러리로 퍼블리시해 키를 얻기 전까지**, 타 환경에선 2(이름 검색) 또는 4(플래그)로 처리된다.
+## 사용 규약 — 부품 유형 2분류 + 방어적 해석 순서 (이식성)
+**모든 픽스 부품은 아래 둘 중 하나다. "없다/미게시"로 단정하지 말 것 — 유형을 확인하라.**
+- **keyed(키형)**: 단일 게시 컴포넌트. `라이브러리 키`로 import. 기계용 링크는 `sources.json` `figma.design_component_keys`(빌드가 직접 조회).
+- **composite(조립형)**: 단일 게시 키가 **원래 없는** 것(예 M-2 Message·M-7 detail·M-8 empty). **bespoke가 아니다** — DS 원자(텍스트스타일·`title_detail/18`·`ico40/empty` 등 게시 원자)를 §C-결과/§M 레시피로 조립한다. `atoms` 레시피를 따르면 DS 일관성 유지.
+
+**해석 순서(키형):**
+1. `design_component_keys`/카탈로그 `라이브러리 키` → `importComponentByKeyAsync(key)` → `createInstance`.
+2. 1 실패 → **`search_design_system`로 `컴포넌트 이름` 재검색(게시 여부 재확인)**. 찾으면 import + **키를 카탈로그·레지스트리에 기록**(다음부터 즉시).
+3. **found-but-unsubscribed**(그 컴포넌트가 특정 라이브러리에만 있고 대상 파일 미구독) → **STOP + "Assets→Libraries에서 <라이브러리> 추가" 요청.** (예: `popup`·`notification`은 🌸 HDS 3.0 소속.)
+4. 진짜 부재 → **STOP + 게시 요청**. **조용히 bespoke로 그리지 않는다**(silent bespoke 금지 — 부득이하면 build-log·보고에 ⚠️ 플래그).
+- ★ **구독 프리플라이트(빌드 시작 시 1회)**: `get_libraries`로 대상 파일 구독 목록을 읽어, `design_component_keys._libraries`가 요구하는 라이브러리(HPDS·HDS 3.0 등)가 **다 구독됐는지 화면 그리기 전에 확인**. 빠지면 위 3처럼 먼저 요청(중간 "key not found"·bespoke 사전 차단).
+- ★ **harvest(키 수확·재현 가능)**: 카탈로그 키가 비었거나 낡았으면 손으로 노드 뒤지지 말고, 소스 DS 파일의 **게시 인스턴스 `getMainComponentAsync().key`+`.remote`+소속 라이브러리를 스캔해 레지스트리를 채운다**(`figma-design` harvest 루틴). DS 갱신 시 재실행.
+- ⚠️ **"미게시"는 시점 추정이지 영구 사실이 아니다** — 매 빌드 2(재검색)로 게시 여부를 재확인. 과거 사고: M-2/3/5/6를 "미게시·키없음"으로 캐시해 매번 bespoke.
 
 ## 라이브러리 / 소스 파일 (실제 키는 `sources.json`에서 관리)
 | 구분 | 참조 | 비고 |
@@ -49,36 +54,37 @@
 | --- | --- | --- | --- | --- |
 | 필터/세그먼트 칩(지역·기간 등) | on `4237ca630836721b4c3287d6f840700e8ef4e908` · off `22572897527e4e2cef06a1c912e5b09a9b7add48` | 컨테이너 `514:8012`(`tab_2dept`) | `EL_tab_2deapt/on`·`/off` | 항목 수만큼 인스턴스 조립. 라벨=내부 `Tab Label`. 선택=on 1. **직접 그린 pill/chip 금지** |
 
-## 팝업 (Popup)  (M-5)  ★clone형(origin-file 한정)
+## 팝업 (Popup)  (M-5)  ★게시됨(🌸 HDS 3.0 — 대상 파일 구독 필요)
 | 용도 | 라이브러리 키 | clone 소스 노드 | 컴포넌트 이름 | 프로퍼티 · 메모 |
 | --- | --- | --- | --- | --- |
-| 실행 전 확인 다이얼로그 **및 서버 응답 에러** | — | `409:5709`(`Popup` `409:5711` > `Popup Content` `409:5712`) | `Popup` | 본문 텍스트 + 취소/확인 2버튼(307 폭). 키 없음 → 퍼블리시 전엔 origin-file 한정 |
+| 실행 전 확인 다이얼로그 **및 서버 응답 에러** | **`a0fe298355e1f156d582b5ddd968b188565f3ff4`**(🌸 HDS 3.0, `ui/popup`) | `409:5709` | `ui/popup` | 본문 + 취소/확인 2버튼·Link text 내장(320w). 불필요 요소(잔액·에러줄·링크)는 `visible=false`. **⚠️ HDS 3.0 미구독 파일 import 실패 → 라이브러리 추가 후**. ⚠️인스턴스 mainComponent 키(`f844c8e4`)≠게시 키 — `search_design_system`이 1차 |
 
-## 바텀시트 (BottomSheet)  (M-3 · M-4)  ★clone형(origin-file 한정)
+## 바텀시트 (BottomSheet)  (M-3 · M-4)  ★게시됨(키 import 확인)
 | 용도 | 라이브러리 키 | clone 소스 노드 | 컴포넌트 이름 | 프로퍼티 · 메모 |
 | --- | --- | --- | --- | --- |
-| 셀렉트 박스 → 리스트 시트(모든 select 탭 시 공통) | — | `409:6368`(안쪽 `EL_bottom_sheet/셀렉트기본` `409:6376`) | `BottomSheet`(셀렉트) | header(Close `icon24` + `Title`) + 리스트 + Gradient + Home Indicator |
-| 세부 안내 시트("자세히/이용안내") | — | `409:5707`(`BottomSheet` `409:5708`) | `BottomSheet`(안내) | 아이콘+타이틀 헤더 + STEP 본문 + 하단 버튼 |
+| 시트 컨테이너(래퍼) | **`2701fa45f0b46a8e62cb7871bd6a8c0fcc49562a`**(HPDS, import 확인✓) | `409:6368` | `bottom_sheet_main` | 헤더(Close+`Title`) + 콘텐츠 슬롯 + Gradient + Home Indicator. 375폭 |
+| 셀렉트 리스트(모든 select 탭 시 공통) | **`a878e543409124be90e722b238bce24fa712842e`** | `409:6376` | `EL_bottom_sheet/셀렉트기본` | 컨테이너 콘텐츠에 얹는 옵션 리스트(327폭) |
+| 세부 안내 시트("자세히/이용안내") | `3364e0f751667f0dda61038da88d77b6e278938e`(🌸 HDS 3.0) | `409:5707` | `EL_bottom_sheet/로그인 안내` | 아이콘+타이틀 헤더 + STEP 본문 + 하단 버튼. **HDS 3.0 구독 필요** |
 
-## 인포박스 (안내)  (M-6)  ★clone형(origin-file 한정)
+## 인포박스 (안내)  (M-6)  ★게시됨(🌸 HDS 3.0 — 대상 파일 구독 필요)
 | 용도 | 라이브러리 키 | clone 소스 노드 | 컴포넌트 이름 | 프로퍼티 · 메모 |
 | --- | --- | --- | --- | --- |
-| 안내 문구(평문 캡션 금지) | — | `409:5877` | `notification` | 아이콘(`ico20/info2`)+텍스트, radius12·pad16/12. **variant 색: red=부정/주의·blue=긍정·gray=중립 안내** |
+| 안내 문구(평문 캡션 금지) | **`08748b0996b413bdacf71e508b1e000c852d5fcb`**(🌸 HDS 3.0, SET) | `409:5877` | `notification` (set) | `importComponentSetByKeyAsync` → variant `Type=blue/gray/red × Title=True/False`. 아이콘+텍스트, radius12. **red=부정·blue=긍정·gray=중립**. trailing "알림 설정>"(Frame+chevron)은 정적 안내엔 `visible=false`. **⚠️ HDS 3.0 구독 필요**. ⚠️인스턴스 키(`1a1addd7`)≠게시 세트 키 |
 
-## 상세 내역 (detail)  (M-7)  ★clone형(origin-file 한정)
-| 용도 | 라이브러리 키 | clone 소스 노드 | 컴포넌트 이름 | 프로퍼티 · 메모 |
+## 상세 내역 (detail)  (M-7)  ★composite(조립형 — 단일 키 없음, DS 원자 조립·bespoke 아님)
+| 용도 | 게시 원자(키) | clone 소스 노드 | 조립 레시피 | 프로퍼티 · 메모 |
 | --- | --- | --- | --- | --- |
-| 결과 화면 핵심 데이터(계좌·금액 등) | — | `409:5534` | `ui/detail` | 라벨+값 행(`Label_L#35087:22`·`Label_R#35087:23`) + divider, bg `🌈bg/03(f4f7fd)`·radius12·pad20/22. 강조값 primary. bespoke 요약카드 대체 |
+| 결과 화면 핵심 데이터(계좌·금액 등) | `title_detail/18` **`595d454f294e60560ebb561f2be8f3adea26fde0`**(HPDS) | `409:5534` | 라벨+값 행(`title_detail/18`) 반복 + divider, bg `🌈bg/03(f4f7fd)`·radius12·pad20/22 | 강조값 primary. **bespoke 요약카드 금지 — 게시 원자 조립** |
 
-## 빈 상태 (empty)  (M-8)  ★clone형(origin-file 한정)
-| 용도 | 라이브러리 키 | clone 소스 노드 | 컴포넌트 이름 | 프로퍼티 · 메모 |
+## 빈 상태 (empty)  (M-8)  ★composite(조립형 — 단일 키 없음, DS 원자 조립)
+| 용도 | 게시 원자(키) | clone 소스 노드 | 조립 레시피 | 프로퍼티 · 메모 |
 | --- | --- | --- | --- | --- |
-| 리스트/검색 결과 없음 | — | `409:6567`(327×232, VERTICAL) | `Frame 1597884660` | 아이콘 + 안내 타이틀(+숨김 서브/CTA). 컨텐츠 영역 중앙, 타이틀만 교체 |
+| 리스트/검색 결과 없음 | `ico40/empty` **`42873e176783f907a36572dc2a86556f09baea53`** | `409:6567`(327×232) | 아이콘(`ico40/empty`) + 안내 타이틀(텍스트스타일) (+숨김 서브/CTA) | 컨텐츠 영역 중앙. 타이틀만 교체 |
 
-## 결과 타이틀+서브 (Message)  (M-2)  ★clone형(origin-file 한정)
-| 용도 | 라이브러리 키 | clone 소스 노드 | 컴포넌트 이름 | 프로퍼티 · 메모 |
+## 결과 타이틀+서브 (Message)  (M-2)  ★composite(조립형 — 단일 키 없음, 전부 DS 텍스트스타일)
+| 용도 | 게시 원자(텍스트스타일) | clone 소스 노드 | 조립 레시피 | 프로퍼티 · 메모 |
 | --- | --- | --- | --- | --- |
-| 완료·실패·대기 결과 메시지 | — | `409:6524`(`Message` `409:6526`) | `Message` | Message(center·gap16) = Container(gap12)[타이틀 `Title/H1_B_24`·gray700 + 서브 `Title/H4_B_18`·primary500] + 본문 `Body/P3_R_14`·gray600 |
+| 완료·실패·대기 결과 메시지 | `Title/H1_B_24`·`Title/H4_B_18`·`Body/P3_R_14`(HPDS 텍스트스타일, §K) | `409:6524`(`Message` `409:6526`) | Message(center·gap16) = Container(gap12)[타이틀 H1·gray700 + 서브 H4·primary500] + 본문 P3·gray600 | **원자가 전부 DS 토큰이라 bespoke 아님** — §C-결과 패턴. 단일 컴포넌트로 게시된 적 없음 |
 
 ## PIN / 비밀번호 입력 화면  (M-11)
 | 용도 | 라이브러리 키 | clone 소스 노드 | 컴포넌트 이름 | 프로퍼티 · 메모 |
@@ -149,6 +155,20 @@
 | --- | --- | --- | --- | --- |
 | 단일 선택(라디오 박스) | `d51deca210b1b614bdbb823545497324faa1cf10` | — | `EL_Radio_box` (set) | 직접 그린 원 금지(§H). 2줄 케이스 = `Radio_box_set/2줄케이스`(`55c774a44f65e947fed8bc2ed22c3f08ebc5a7d6`) |
 | 체크박스(약관/멀티) | `f24bd9878684f79fd4f90dbe8929d366cb5214cf` | — | `EL_agreement_check_normal` (set) | 큰 체크 = `EL_agreement_check_big`(`c5903c01179b5c06bbae594b25c00b05c1d9a655`). 약관 묶음은 M-15 `Agreement` 가 내장 |
+
+## 스토리보드 정본 세트  (M-23)  ★ 3세트 골격의 반입 소스 (그린필드 발명 금지)
+> 빈 파일에서 SB_Templates+SECTION+Description 3세트 **골격**을 새로 그리지 않는다 — 아래 게시 부품을 `importComponentByKeyAsync`로 반입한다(`figma-design` §A·§D·§M-23). 실제 키는 `sources.json` `figma.storyboard_component_keys`에서 관리(여기 표는 매핑·용도). 정본 파일은 `figma.storyboard_template_file`.
+
+| 부품 | 실제 컴포넌트명 | `sources.json` 키 | 용도 · 메모 |
+| --- | --- | --- | --- |
+| SB_Templates 보드(전체) | `Type=Version` | `sb_board` = `9472a0125f69b66831f6dc2f8b30975c601c3c19`(remote) | 1920×1347 보드형(`[화면 ID]`+화면명·Links·Version·Update 뱃지). SB 라벨은 리플로우가 섹션명에서 동기화 |
+| SB_Templates 보드(기본) | `Type=Basic` | `sb_board_basic` = `7075f69459219de5f15afde77d5981740457d136`(remote) | 1920×1080 간이 보드 변형 |
+| 주석 단위(=annotation-frame) | `Description` | `annotation_frame` = `e4ed031c5f888f59db320dd23a298285657b6c41`(remote) | 411폭 주석 1행(뱃지+제목+본문). 화면 배지 수(N)만큼 인스턴스, 텍스트만 오버라이드 |
+| 번호 뱃지(=label-group) | `Badge` | `label_group` = `b043d929e3d19a7080495d05e23e17a833dd83b6`(remote) | 40×40 번호 뱃지. 액션 요소마다 인스턴스(최상위 z) |
+| SECTION | (일반 SECTION, 컴포넌트 아님) | `section` = clone | 1375폭·`#000000 10%` 틴트 컨테이너. 정본 행 clone 또는 규격 생성 |
+| Description 패널 | (일반 FRAME, 컴포넌트 아님) | `description_panel` = clone | 459폭 주석 패널. 정본 행 clone 후 안의 `Description`(annotation) 인스턴스 N개로 채움 |
+
+> ⚠️ 이름 주의: 정본 라이브러리에서 **주석 1행 컴포넌트 이름이 `Description`**(411폭)이고, 이를 담는 **459폭 패널은 동명의 일반 프레임**이다(중첩 동명). 뱃지 컴포넌트명은 `Badge`(=우리가 부르던 label-group).
 
 ## 레이아웃 규칙 참조  (M-1)
 | 용도 | 값 | 비고 |
