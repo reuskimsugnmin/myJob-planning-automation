@@ -33,6 +33,7 @@ Description 프레임 구조(운영 양식): `Description > [헤더 내비 프�
 ### 0-A. 정본 구조 불변식 (재발 방지 — 반드시 준수)
 > 과거 사고: 디스크립션을 정본 템플릿 clone 없이 **임의의 새 패널로 발명**했고, 그 전에 "lo-fi 잔재" 정리 중 디스크립션 구조가 붙은 SECTION을 **삭제**해 과거 픽스를 날릴 뻔했다. 아래를 반드시 지킨다.
 - **정본 템플릿 clone 필수 · 레이아웃 발명 금지.** Description/annotation-frame/label-group 은 새로 디자인하지 말고 **기존 정본 노드를 clone**해 텍스트(`"1"`/`"Section Title.."`/`"Lorem ipsum.."`)만 교체한다. 임의의 새 패널·뱃지 모양 생성 금지.
+- **★ clone 소스가 없으면 멈춰라(발명하지 말고 반입).** 이 파일에 clone할 Description/annotation-frame/label-group 정본이 없으면, `sources.json` `figma.storyboard_template_file`의 **게시된 정본 세트(`figma-design` §M-23)를 키로 반입**해 clone 소스로 확보한다. `storyboard_template_file`에도 없거나 미게시면 **멈추고 사용자에게 정본 반입/게시를 요청**(header/main 게시와 동일 1회 셋업). **"규격 문서(이 §4 양식)만 보고" Description 패널·뱃지를 새로 그리지 말 것 — 과거 사고의 근본원인이다**(노드명·본문 규칙은 맞아도 구조·디자인이 팀 정본과 다름).
 - **보호 레이어 · 삭제 금지.** `Description`·`annotation-frame`·`label-group`·`text-area`·`SB_Templates` 행은 cleanup/정리 단계에서 **삭제하지 않는다.** "낡은 lo-fi"로 보여도 주석 레이어·과거 픽스가 함께 묶여 있을 수 있다. 삭제가 필요하면 대상이 디스크립션 구조/과거 픽스가 아님을 확인하고 애매하면 **사용자 확인**(`prd-sdd-editing` 의 ID안정성·유실방지 불변식을 디자인에도 적용).
 - **작업 전 재로드.** 디스크립션 작업 시작 시 이 스킬 + 정본 구조 메모리를 먼저 로드해 임의 구조 생성을 차단한다. `.md` 백업이 내용 진실 소스이므로 캔버스 유실 시 .md로 복구한다.
 - **3-set 행 배치(운영).** 한 화면 행 = `SB_Templates`(헤더 밴드) **위에** 디자인 SECTION(폭 1375·`#000000 10%`, 디자인 프레임 + 뱃지 **섹션 최상위 z**·디자인과 분리) + **우측** `Description`. 화면 추가는 이 행을 clone해 헤더·프레임·뱃지·annotation 내용만 교체.

@@ -7,10 +7,23 @@
     "ticket_db": "<notion-tickets-database-id>"
   },
   "figma": {
-    "_desc": "레거시 화면(개선용)·레퍼런스(신규용)·스토리보드/디자인 작업용 Figma 파일 키. legacy/reference 는 읽기(figma-explore), storyboard_template_file·design_system_files 는 쓰기(storyboard-build/design-description)에 쓰입니다. design_system_files 는 화면 조립 시 컴포넌트를 가져올 연결 디자인시스템 라이브러리(get_libraries/search_design_system 대상)입니다. storyboard_target 은 라이브 스토리보드 작업 대상(file + page node) — 커맨드에 --figma-url 을 안 주면 이 값을 폴백으로 사용합니다(선택). explore_pages 는 어떤 페이지를 탐색할지 선택 힌트 — 비어 있으면 실행 시 사용자에게 질문합니다.",
+    "_desc": "레거시 화면(개선용)·레퍼런스(신규용)·스토리보드/디자인 작업용 Figma 파일 키. legacy/reference 는 읽기(figma-explore), storyboard_template_file·storyboard_component_keys·design_system_files 는 쓰기(storyboard-build/design-description)에 쓰입니다. storyboard_template_file 은 3세트 정본 행이 있는 파일(그린필드에서 골격을 반입할 소스). storyboard_component_keys 는 그 정본 3세트 부품(SB 보드·SECTION·Description·annotation-frame·label-group)의 게시 componentKey — 빈 파일에서 골격을 발명하지 않고 키 import 하기 위함(figma-design §M-23). 부품이 미게시면 사용자가 게시 후 search_design_system 으로 키를 채웁니다. design_system_files 는 화면 조립 시 컴포넌트를 가져올 연결 디자인시스템 라이브러리(get_libraries/search_design_system 대상)입니다. storyboard_target 은 라이브 스토리보드 작업 대상(file + page node) — 커맨드에 --figma-url 을 안 주면 이 값을 폴백으로 사용합니다(선택). explore_pages 는 어떤 페이지를 탐색할지 선택 힌트 — 비어 있으면 실행 시 사용자에게 질문합니다.",
     "legacy_files": ["<figma-file-key>"],
     "reference_files": ["<figma-file-key>"],
     "storyboard_template_file": "<figma-file-key>",
+    "storyboard_component_keys": {
+      "sb_board": "<게시된 SB_Templates 보드 componentKey>",
+      "section": "<게시된 SECTION componentKey (미게시면 1375·#000 10% 규격 생성)>",
+      "description": "<게시된 Description componentKey>",
+      "annotation_frame": "<게시된 annotation-frame componentKey>",
+      "label_group": "<게시된 label-group(40x40 뱃지) componentKey>"
+    },
+    "design_component_keys": {
+      "_desc": "픽스 부품(figma-design §M M-2~M-8 등) 기계용 링크 레지스트리. 빌드가 바로 읽어 key import(카탈로그는 사람용 설명, 이건 기계용). harvest 루틴(figma-design)이 소스 DS 파일의 게시 인스턴스에서 채웁니다. kind=keyed(단일 게시 컴포넌트) / composite(단일 키 없음·DS 원자 조립). library=소속 라이브러리 별칭(_libraries에 실제 libraryKey) — 대상 파일이 미구독이면 key import 실패하므로 빌드 전 구독 프리플라이트 필수.",
+      "_libraries": { "<라이브러리별칭>": "<libraryKey lk-...>" },
+      "M-5_popup": { "kind": "keyed", "key": "<componentKey>", "library": "<라이브러리별칭>", "comp": "<컴포넌트명>", "node_hint": "<원본 clone 소스 node(보조)>" },
+      "M-2_message": { "kind": "composite", "atoms": "<DS 원자 조립 레시피(텍스트스타일 등)>", "node_hint": "<원본 node>" }
+    },
     "storyboard_target": { "file": "<figma-file-key>", "page_node": "<선택: 작업할 페이지 node-id>" },
     "design_system_files": ["<figma-design-system-library-file-key>"],
     "explore_pages": ["<선택: 탐색할 페이지 이름들>"]

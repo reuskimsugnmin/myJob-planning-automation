@@ -20,7 +20,9 @@ description: PRD/SDD를 Figma 스토리보드·low/mid-fi 디자인으로 실현
 
 ## 선행
 - 대상 engagement에 `PRD.md`(있으면 `SDD.md`)가 있어야 한다.
-- `.planning/sources.json` 의 `figma.storyboard_template_file`(스토리보드 템플릿)·`figma.design_system_files`(연결 라이브러리)·`figma.legacy_files`/`reference_files` 를 확인. 스토리보드 대상 파일/페이지 URL이 없으면 사용자에게 요청.
+- `.planning/sources.json` 의 `figma.storyboard_template_file`(스토리보드 템플릿)·`figma.storyboard_component_keys`(정본 3세트 부품 키)·`figma.design_system_files`(연결 라이브러리)·`figma.legacy_files`/`reference_files` 를 확인. 스토리보드 대상 파일/페이지 URL이 없으면 사용자에게 요청.
+- **★ 정본 템플릿 반입 게이트(그린필드 필수 — 발명 방지):** 대상 파일에 clone할 **기존 3세트 행(SB_Templates+SECTION+Description)이 없으면**, `figma-design` §A/§D/§M-23 규칙대로 **`storyboard_template_file`의 게시된 정본 세트를 키로 반입**해 첫 행을 확보한 뒤 §3으로 진행한다. `storyboard_template_file`/`storyboard_component_keys`가 미등록이거나 부품이 미게시라 import가 실패하면 **멈추고 사용자에게 정본 템플릿 파일/게시를 요청**(header/main 게시와 동일 1회 셋업). **3세트 골격을 스킬 규격 문서만 보고 새로 그리지 않는다**(과거 사고 근본원인). 기존 행이 있으면 그 행을 clone 소스로 쓴다(반입 불필요).
+- **★ DS 라이브러리 구독 프리플라이트(화면 그리기 전 1회 필수):** `get_libraries`로 대상 파일 구독 목록을 읽어, `sources.json` `figma.design_component_keys._libraries`가 요구하는 라이브러리(예 🔫HPDS_1.0·🌸HDS 3.0)가 **다 구독됐는지 확인**. 미구독이 있으면 **화면 생성 전에 STOP + "Assets→Libraries에서 <라이브러리> 추가" 요청**. 이 프리플라이트를 건너뛰면 픽스부품(팝업·시트·인포박스 등) import가 빌드 중간 "key not found"로 실패해 **silent bespoke로 샌다**(과거 사고: ARGOS가 HDS 3.0 미구독). 방법·유형분류는 `figma-design §L`·카탈로그 사용 규약(단일 소스).
 - **★ 레퍼런스 게이트(신규/mode B 필수):** `reference_files` 가 비어 있으면 **멈추고 사용자에게 레퍼런스 Figma/이미지를 요청**하거나 `reference-research.md`(경쟁사 패턴)로 충분한지 확인받는다. **레퍼런스 없이 화면을 짓지 않는다**(아래 §2.5 벤치마크 게이트로 연결).
 
 ## 절차
@@ -64,7 +66,7 @@ description: PRD/SDD를 Figma 스토리보드·low/mid-fi 디자인으로 실현
 - 기존 파일을 스캔해 화면 목록(SB_Templates+SECTION+Description 3세트)과 컴포넌트 인벤토리를 파악 → policy-table과 **갭 분석**(추가할 화면 / 기존 화면 TO-BE 수정).
 - **§2.5에서 확정한 화면별 IA대로 짓는다** — region마다 가장 높은 수준의 DS composite를 끼우되, 정보위계는 레퍼런스 기반(타 도메인 레이아웃 답습 금지).
 - **갭 분석 결과를 사용자에게 제시하고 확인받은 뒤** 실행(잘못된 대량 생성 방지).
-- 모드 A: 변경분만 in-place 반영(옛 요소 완전 삭제, 뱃지·디스크립션 보존). 모드 B: `figma-design` 의 ++Top 골격 + region↔컴포넌트 매핑 + zero-bespoke 마감으로 **한 패스에 완전한 구조**(Description 스캐폴드 포함)로 산출.
+- 모드 A: 변경분만 in-place 반영(옛 요소 완전 삭제, 뱃지·디스크립션 보존). 모드 B: `figma-design` 의 ++Top 골격 + region↔컴포넌트 매핑 + zero-bespoke 마감으로 **한 패스에 완전한 구조**(Description 스캐폴드 포함)로 산출. **★ 3세트 골격·Description 스캐폴드·label-group 뱃지는 발명 대상이 아니다 — §M-23 정본 세트를 키 반입/clone**해서 온다(선행 "정본 템플릿 반입 게이트" 준수). 화면 *내부 콘텐츠*(입력·버튼·결과)만 라이브러리 조립.
 - "누락 0개"여도 끝이 아님 — **기존 화면도 PRD TO-BE 항목 단위로 대조**해 반영. 5개씩 배치, 15개 초과는 범위 분할.
 - **콘텐츠 채움 규약(`--fidelity high` 시 — F-1 콘텐츠 레인).** 화면을 채울 때 ① **PRD 사실값 우선** ② 없으면 `engagements/<slug>/design/content-kit.md`(시드 `templates/design/content-kit.template.md`)의 **`provenance: illustrative` 예시 콘텐츠**로 채우되 **디자인에만 반영**(디스크립션 claim·PRD 미반영) ③ 둘 다 없으면 기존 `⛳`. illustrative로 채운 값은 디스크립션에 **"예시값" 표기**(`design-description §4`), **소셜프루프 수치는 화면에도 "예시" 맥락**. **기본 `mid`/미지정이면 적용 안 함**(빈칸은 ⛳ 그대로 — 기존 동작). 누출 방지는 `design-finalize` 누출 검사(예시값이 PRD/디스크립션 개발계약에 새면 FAIL).
 - `⛳DECISION`: 전략적 UX 배치(핵심 정보 우선순위·차별화 요소)는 단정하지 말고 옵션·추천만. **이런 결정은 인라인 단정 대신 `decision-checklist` 스키마로 `policy-table.md` 하단 "디자인 의사결정 체크리스트"에 `D-n` 적재**(추천안·임시채택까지 AI, 최종 결정은 사람). 화면 정책의 `의사결정`은 `→ D-n` 포인터로. **결정이 서비스정책·기획요건에 영향을 주면 `PRD/SDD C1 D-n`에 등록·본문 갱신(`prd-sdd-editing` 준수) + policy-table엔 `→ PRD D-n` 링크**; 순수 표현 결정은 PRD를 수정하지 않는다(`decision-checklist` 영향 기준 분기).
@@ -112,7 +114,7 @@ description: PRD/SDD를 Figma 스토리보드·low/mid-fi 디자인으로 실현
 | 8 | SB 화면번호/타이틀 == 섹션명 | `figma-design` §A 리플로우 4단계 | 리플로우로 자동동기화 |
 | 9 | 컴포넌트 hug 무결성(붕괴·흰여백 0) | `figma-design` §F-3 | 자동 hug 수정 |
 
-- **#1 DS 커버리지** — authored 비-콘텐츠 UI에 bespoke 잔재 0(`bad=[]` 이어야. 남으면 §M/§L 정본 컴포넌트로 교체 — 인풋=use_form·탭/칩=M-9/10·버튼=btn54…). 점검 스크립트: `scripts/closeout-audit.js` #1.
+- **#1 DS 커버리지** — authored 비-콘텐츠 UI에 bespoke 잔재 0(`bad=[]` 이어야. 남으면 §M/§L 정본 컴포넌트로 교체 — 인풋=use_form·탭/칩=M-9/10·버튼=btn54…). 점검 스크립트: `scripts/closeout-audit.js` #1. **★ 카탈로그 패턴 bespoke 적발(카운트 아님)**: 이름이 카탈로그 픽스 패턴(`popup`/`sheet`/`bottom-sheet`/`notification`/`infobox`/`Message`/`ui/detail`/`empty`)인데 **INSTANCE가 아니라 FRAME/GROUP**(=원자 재조립)이면 **DS 커버리지 미스로 플래그**한다. "미게시라 재조립"은 통과 사유가 아님 — §M 재확인 절차(게시 여부 재검색·라이브러리 구독·사용자 플래그)로 정본 인스턴스 확보. (과거 사고: ARGOS 팝업/시트/인포박스/Message가 bespoke FRAME인데 #1이 카운트만 봐서 통과.)
 - **#7 컴포넌트 무결성** — authored 최상위 INSTANCE 전수(detach 0·override 유지. detach/empty 0 + `get_screenshot`로 swap 잔재(이중테두리·팬텀여백·색 이상=§F)·텍스트 오버라이드 유실 육안 확인). 점검 스크립트: `scripts/closeout-audit.js` #7.
 - **#2 액션 배지 완전성(★ 카운트 아님 — 요소별 배지 실재)** — **모든 인터랙티브 요소**가 *각자* 노출 배지를 가져야 한다: 버튼·입력·탭(탭바)·칩(칩행)·카드·링크·토글 **+ 오버레이 서브액션**(시트 옵션 행 각각·팝업 버튼 각각). **디스크립션 inline 서술로 대체 금지** — 시트 옵션/팝업 버튼도 `label-group` 배지(부모 N + 서브 Na/Nb)를 *디자인 위에* 둔다(실패: e02 시트 옵션·팝업 버튼을 배지 없이 inline로 때움). 각 액션 요소 bbox edge 최근접 배지 ≤ 임계거리인지 스크립트로 대조 → 미스 0. 양식은 `design-description` badge-matching. 점검 스크립트: `scripts/closeout-audit.js` #2(`miss=[]` 이어야).
 - **#5 디스크립션→디자인 역검증** — 각 화면 Description 본문에서 `[상태]/[엣지·예외]/[오버레이]/[에러]/[노출 조건]` 분기를 추출해, **분기마다 대응 디자인**(상태 프레임·오버레이 폰·variant)이 존재하는지 대조. 없으면 리포트 → §6로 화면화(HITL).
